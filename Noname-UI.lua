@@ -1,95 +1,12 @@
 if not game:IsLoaded() then game.Loaded:Wait() end
-
 local Cloneref = (cloneref or clonereference or function(Instance) return Instance end)
-local HttpService = Cloneref(game:GetService("HttpService"))
-
-local function Load(Url, FileName)
-	local Loader = (type(loadstring) == "function" and loadstring) or (type(load) == "function" and load)
-	if not Loader then error("Load: this executor does not provide loadstring/load") end
-
-	local function FetchRaw(FetchUrl)
-		for _, Attempt in ipairs({
-			function() return game:HttpGet(FetchUrl) end,
-			function() return HttpService:GetAsync(FetchUrl) end,
-			function() local ReqFn = (type(request) == "function" and request) or (type(http_request) == "function" and http_request) or (type(syn) == "table" and type(syn.request) == "function" and syn.request) or (type(http) == "table" and type(http.request) == "function" and http.request); return ReqFn and ReqFn({ Url = FetchUrl, Method = "GET" }).Body end,
-		}) do
-			local Ok, Res = pcall(Attempt)
-			if Ok and Res and Res ~= "" then return Res end
-		end
-		error("Load: all fetch methods are not supported")
-	end
-
-	local function FetchJSON(FetchUrl)
-		local Ok, Decoded = pcall(HttpService.JSONDecode, HttpService, FetchRaw(FetchUrl)); return Ok and Decoded or nil
-	end
-
-	local function LoadCachedFile(Path)
-		local Chunk, Err
-		if type(loadfile) == "function" then Chunk, Err = loadfile(Path) else
-			local Ok, Raw = pcall(readfile, Path)
-			if not Ok then warn("Load: failed to read cache (" .. FileName .. "): " .. tostring(Raw)); return nil, Raw end
-			Chunk, Err = Loader(Raw)
-		end
-		if not Chunk then warn("Load: cached " .. FileName .. " failed to compile: " .. tostring(Err)); return nil, Err end
-		local Ok, Result = pcall(Chunk); if not Ok then warn("Load: cached " .. FileName .. " failed to run: " .. tostring(Result)); return nil, Result end
-		return Result
-	end
-
-	local FileSystemApiSupport = writefile and isfile and makefolder and isfolder and (type(loadfile) == "function" or type(readfile) == "function")
-	if FileSystemApiSupport and not isfolder("LoadCache") then makefolder("LoadCache") end
-
-	local Hash = 5381
-	for I = 1, #Url do Hash = ((Hash * 33) + string.byte(Url, I)) % 4294967296 end
-	local Path = "LoadCache/" .. string.format("%08x", Hash) .. "_" .. FileName:gsub("[^%w%.%-]", "_")
-	local SidecarPath = Path .. ".meta.lua"
-
-	local GhSha, JsdHash
-	if FileSystemApiSupport then
-		local Owner, Repo, Branch, FilePath = Url:gsub("/refs/heads/", "/"):gsub("/refs/tags/", "/"):match("raw%.githubusercontent%.com/([^/]+)/([^/]+)/([^/]+)/(.+)")
-
-		if Owner then
-			local GhData = FetchJSON("https://api.github.com/repos/" .. Owner .. "/" .. Repo .. "/contents/" .. FilePath .. "?ref=" .. Branch); GhSha = type(GhData) == "table" and GhData.sha
-
-			local JsdData = FetchJSON("https://data.jsdelivr.com/v1/package/gh/" .. Owner .. "/" .. Repo .. "@" .. Branch .. "/flat")
-			if type(JsdData) == "table" and type(JsdData.files) == "table" then
-				for _, File in ipairs(JsdData.files) do
-					if File.name == "/" .. FilePath then JsdHash = File.hash; break end
-				end
-			end
-		end
-
-		if (GhSha or JsdHash) and isfile(Path) and isfile(SidecarPath) then
-			local Meta = LoadCachedFile(SidecarPath)
-			if type(Meta) == "table" and ((GhSha and Meta.gh == GhSha) or (JsdHash and Meta.jsd == JsdHash)) then
-				local Result, Err = LoadCachedFile(Path)
-				if Result ~= nil or Err == nil then return Result end
-			end
-		end
-	end
-
-	while true do
-		local Result = FetchRaw(Url)
-		if Result then
-			if FileSystemApiSupport then
-				pcall(writefile, Path, Result)
-				if GhSha or JsdHash then pcall(writefile, SidecarPath, string.format("return {gh=%q,jsd=%q}", tostring(GhSha), tostring(JsdHash))) end
-			end
-
-			local Chunk, CompileErr = Loader(Result)
-			if not Chunk then error("Load: failed to compile " .. FileName .. ": " .. tostring(CompileErr)) end
-			return Chunk()
-		end
-		warn("Load: fetch failed for " .. FileName .. ", retrying in 2s...")
-		task.wait(2)
-	end
-end
 
 --[[ Services ]]--
 local Players = Cloneref(game:GetService("Players"))
 local LocalPlayer = Players.LocalPlayer
 
 --[[ Variables ]]--
-local UIGesture = Load("https://raw.githubusercontent.com/isskkauww/Modules/refs/heads/main/UIGesture.luau", "UIGesture.luau")
+local UIGesture = loadstring(game:HttpGet("https://raw.githubusercontent.com/isskkauww/Modules/refs/heads/main/UIGesture.luau"))()
 
 local UI = {}
 
@@ -120,6 +37,7 @@ local ScreenGui = NewInstance("ScreenGui", {
 	ResetOnSpawn = false,
 	ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
 	IgnoreGuiInset = true,
+   DisplayOrder = 2147483647,
 })
 
 UI.CommandBar = {}
@@ -130,7 +48,6 @@ UI.CommandBar.Frame = NewInstance("Frame", {
 	Position = UDim2.new(0.5, 0, 0.5, 0),
 	AnchorPoint = Vector2.new(0.5, 0.5),
 	BackgroundColor3 = Color3.fromRGB(12, 12, 12),
-	BackgroundTransparency = 0.129,
 	ClipsDescendants = true,
 	Visible = false,
 })
@@ -190,7 +107,7 @@ for I = 1, 6 do
 		Parent = UI.CommandBar.SuggFrame,
 		Size = UDim2.new(0, 165, 0, 30),
 		BackgroundColor3 = Color3.fromRGB(12, 12, 12),
-		BackgroundTransparency = 0.08,
+		BackgroundTransparency = 0,
 		TextColor3 = Color3.fromRGB(255, 255, 255),
 		Font = Enum.Font.GothamBold,
 		TextSize = 12,
