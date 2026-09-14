@@ -130,6 +130,7 @@ UI.CommandBar.Frame = NewInstance("Frame", {
 	Position = UDim2.new(0.5, 0, 0.5, 0),
 	AnchorPoint = Vector2.new(0.5, 0.5),
 	BackgroundColor3 = Color3.fromRGB(12, 12, 12),
+	BackgroundTransparency = 0.129,
 	ClipsDescendants = true,
 	Visible = false,
 })
@@ -189,7 +190,7 @@ for I = 1, 6 do
 		Parent = UI.CommandBar.SuggFrame,
 		Size = UDim2.new(0, 165, 0, 30),
 		BackgroundColor3 = Color3.fromRGB(12, 12, 12),
-		BackgroundTransparency = 0,
+		BackgroundTransparency = 0.08,
 		TextColor3 = Color3.fromRGB(255, 255, 255),
 		Font = Enum.Font.GothamBold,
 		TextSize = 12,
