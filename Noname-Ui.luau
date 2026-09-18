@@ -5,15 +5,17 @@ local Cloneref = (cloneref or clonereference or function(Instance) return Instan
 local Players = Cloneref(game:GetService("Players"))
 local LocalPlayer = Players.LocalPlayer
 local TweenService = Cloneref(game:GetService("TweenService"))
+local UserInputService = Cloneref(game:GetService("UserInputService"))
 
 --[[ Variables ]]--
 local UIGesture = loadstring(game:HttpGet("https://raw.githubusercontent.com/isskkauww/Modules/refs/heads/main/UIGesture.luau"))()
+local ToggleBusy = false
 
 local UI = {
 	CommandBar = {},
-	Toggle = {},
 	HUD = {},
 }
+UI.CmdOpen = false
 
 local function NewInstance(ClassName, Props)
 	local Inst = Instance.new(ClassName)
@@ -47,7 +49,7 @@ local ScreenGui = NewInstance("ScreenGui", {
 
 --[[ Toggle ]]--
 do
-	UI.Toggle.Button = NewInstance("TextButton", {
+	local ToggleButton = NewInstance("TextButton", {
 		Parent = ScreenGui,
 		BackgroundColor3 = Color3.fromRGB(46, 46, 47),
 		BackgroundTransparency = 0.14,
@@ -60,11 +62,34 @@ do
 		ZIndex = 10,
 	})
 
-	NewInstance("UICorner", { Parent = UI.Toggle.Button, CornerRadius = UDim.new(0.5, 0) })
+	NewInstance("UICorner", { Parent = ToggleButton, CornerRadius = UDim.new(0.5, 0) })
 
-	UIGesture:MakeDraggable(UI.Toggle.Button)
+	UIGesture:MakeDraggable(ToggleButton)
 
-	UI.Toggle.Scale = NewInstance("UIScale", { Parent = UI.Toggle.Button })
+	local ToggleScale = NewInstance("UIScale", { Parent = ToggleButton })
+
+	ToggleButton.Activated:Connect(function()
+		if ToggleBusy then return end
+		ToggleBusy = true
+
+		local TweenPress = TweenService:Create(ToggleScale, TweenInfo.new(0.08, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { Scale = 0.78 })
+		local TweenRelease = TweenService:Create(ToggleScale, TweenInfo.new(0.22, Enum.EasingStyle.Back, Enum.EasingDirection.Out), { Scale = 1 })
+
+		TweenPress:Play()
+		TweenPress.Completed:Wait()
+		TweenRelease:Play()
+		if not UI.CmdOpen then
+			UI.CmdOpen = true
+			UI.CommandBar.Frame.Visible = true
+			UI.CommandBar.Frame.Size = UDim2.new(0, 0, 0, 48)
+			TweenService:Create(UI.CommandBar.Frame, TweenInfo.new(0.3, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), { Size = UDim2.new(0, 260, 0, 38) }):Play()
+			task.delay(0.1, function()
+				UI.CommandBar.InputBox:CaptureFocus()
+			end)
+		end
+		TweenRelease.Completed:Wait()
+		ToggleBusy = false
+	end)
 end
 
 --[[ CommandBar ]]--
@@ -160,7 +185,7 @@ end
 
 --[[ HUD ]]--
 do
-	local function BuildValueRow(Frame, Value, Placeholder, Tw, OnValueChanged)
+	local function BuildValueRow(Frame, Value, Placeholder, Tw, OnValueChanged, Numeric)
 		local ValueLabel = NewInstance("TextLabel", {
 			Parent = Frame,
 			Size = UDim2.new(0, 36, 0, 44),
@@ -202,7 +227,7 @@ do
 
 		NewInstance("UICorner", { Parent = InputRow, CornerRadius = UDim.new(0, 8) })
 
-		NewInstance("UIStroke", {
+		local InputStroke = NewInstance("UIStroke", {
 			Parent = InputRow,
 			Color = Color3.fromRGB(60, 60, 80),
 			ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
@@ -237,7 +262,24 @@ do
 			end
 		end
 
+		if Numeric then
+			local LastText = InputBox.Text
+			InputBox:GetPropertyChangedSignal("Text"):Connect(function()
+				if InputBox.Text ~= "" and not tonumber(InputBox.Text) then
+					InputBox.Text = LastText
+				else
+					LastText = InputBox.Text
+				end
+			end)
+		end
+
+		InputBox.Focused:Connect(function()
+			TweenService:Create(InputStroke, TweenInfo.new(1.2), { Color = Color3.fromRGB(0, 191, 255) }):Play()
+		end)
+
 		InputBox.FocusLost:Connect(function()
+			TweenService:Create(InputStroke, TweenInfo.new(1.2), { Color = Color3.fromRGB(60, 60, 80) }):Play()
+
 			local N = tonumber(InputBox.Text)
 			local V = N or InputBox.Text
 			ValueLabel.Text = tostring(V)
@@ -248,11 +290,12 @@ do
 		return ToggleBtn, ValueLabel, InputBox, SetExpanded, function() return Expanded end
 	end
 
-	function UI.HUD.MakeButton(Label, StartFn, Placeholder, DefaultValue)
+	function UI.HUD.MakeButton(Label, StartFn, Placeholder, DefaultValue, Numeric)
+		Numeric = Numeric ~= false
 		local HasValue = Placeholder ~= nil and DefaultValue ~= nil
 		local Value = DefaultValue
 		local Tw = TweenInfo.new(0.15, Enum.EasingStyle.Quad)
-		local Frame, NameLabel
+		local Frame, NameLabel, Hud
 		local Built = false
 		local SetExpanded, GetExpanded
 
@@ -270,6 +313,7 @@ do
 				Size = HasValue and UDim2.new(0, 130, 0, 44) or UDim2.new(0, 100, 0, 40),
 				Position = HasValue and UDim2.new(1, -146, 0, 20) or UDim2.new(1, -120, 0, 20),
 			})
+			Hud.Frame = Frame
 
 			NewInstance("UICorner", { Parent = Frame, CornerRadius = UDim.new(0, 12) })
 
@@ -296,7 +340,7 @@ do
 			if HasValue then
 				local ToggleBtn, _, _, SExp, GExp = BuildValueRow(Frame, Value, Placeholder, Tw, function(V)
 					Value = V
-				end)
+				end, Numeric)
 				SetExpanded = SExp
 				GetExpanded = GExp
 
@@ -338,7 +382,7 @@ do
 			end
 		end
 
-		return {
+		Hud = {
 			Show = function() Build(); Frame.Visible = true end,
 			Hide = function()
 				if not Built then return end
@@ -347,18 +391,21 @@ do
 			end,
 			ShowOff = function() Build(); Frame.Visible = true end,
 			Destroy = function()
-				if Frame then Frame:Destroy(); Frame = nil end
+				if Frame then Frame:Destroy(); Frame = nil; Hud.Frame = nil end
 				Built = false
 			end,
 		}
+
+		return Hud
 	end
 
-	function UI.HUD.MakeToggle(StartFn, StopFn, Placeholder, DefaultValue, LabelOn, LabelOff)
+	function UI.HUD.MakeToggle(StartFn, StopFn, Placeholder, DefaultValue, LabelOn, LabelOff, Numeric)
+		Numeric = Numeric ~= false
 		local HasValue = Placeholder ~= nil and DefaultValue ~= nil
 		local Active = false
 		local Value = DefaultValue
 		local Tw = TweenInfo.new(0.15, Enum.EasingStyle.Quad)
-		local Frame, Stroke, NameLabel, ValueLabelRef, InputBoxRef
+		local Frame, Stroke, NameLabel, ValueLabelRef, InputBoxRef, Hud
 		local Built = false
 		local SetExpanded, GetExpanded
 
@@ -376,6 +423,7 @@ do
 				Size = HasValue and UDim2.new(0, 130, 0, 44) or UDim2.new(0, 100, 0, 40),
 				Position = HasValue and UDim2.new(1, -146, 0, 20) or UDim2.new(1, -120, 0, 20),
 			})
+			Hud.Frame = Frame
 
 			NewInstance("UICorner", { Parent = Frame, CornerRadius = UDim.new(0, 12) })
 
@@ -403,7 +451,7 @@ do
 				local ToggleBtn, SLabel, IBox, SExp, GExp = BuildValueRow(Frame, Value, Placeholder, Tw, function(V)
 					Value = V
 					if Active then StartFn(Value, true) end
-				end)
+				end, Numeric)
 				ValueLabelRef = SLabel
 				InputBoxRef = IBox
 				SetExpanded = SExp
@@ -458,7 +506,7 @@ do
 			end
 		end
 
-		return {
+		Hud = {
 			Show = function(NewValue)
 				Build()
 				if HasValue and NewValue then
@@ -489,10 +537,12 @@ do
 				NameLabel.TextColor3 = Color3.fromRGB(220, 70, 70)
 			end,
 			Destroy = function()
-				if Frame then Frame:Destroy(); Frame = nil end
+				if Frame then Frame:Destroy(); Frame = nil; Hud.Frame = nil end
 				Built = false
 			end,
 		}
+
+		return Hud
 	end
 end
 
