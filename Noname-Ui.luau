@@ -318,7 +318,7 @@ do
 
 				ClickArea.Activated:Connect(function()
 					if Th then Th = false return end
-					StartFn(Value)
+					StartFn(Value, true)
 				end)
 			else
 				local ClickArea = NewInstance("TextButton", {
@@ -333,7 +333,7 @@ do
 				UIGesture:MakeDraggable(Frame, ClickArea)
 
 				ClickArea.Activated:Connect(function()
-					StartFn()
+					StartFn(nil, true)
 				end)
 			end
 		end
@@ -402,7 +402,7 @@ do
 			if HasValue then
 				local ToggleBtn, SLabel, IBox, SExp, GExp = BuildValueRow(Frame, Value, Placeholder, Tw, function(V)
 					Value = V
-					if Active then StartFn(Value) end
+					if Active then StartFn(Value, true) end
 				end)
 				ValueLabelRef = SLabel
 				InputBoxRef = IBox
@@ -432,7 +432,7 @@ do
 					NameLabel.Text = Active and LabelOn or LabelOff
 					TweenService:Create(Stroke, Tw, { Color = Col }):Play()
 					TweenService:Create(NameLabel, Tw, { TextColor3 = Col }):Play()
-					if Active then StartFn(Value) else StopFn() end
+					if Active then StartFn(Value, true) else StopFn(true) end
 					if not Active and GetExpanded() then SetExpanded(false) end
 				end)
 			else
@@ -453,7 +453,7 @@ do
 					NameLabel.Text = Active and LabelOn or LabelOff
 					TweenService:Create(Stroke, Tw, { Color = Col }):Play()
 					TweenService:Create(NameLabel, Tw, { TextColor3 = Col }):Play()
-					if Active then StartFn() else StopFn() end
+					if Active then StartFn(nil, true) else StopFn(true) end
 				end)
 			end
 		end
