@@ -10,6 +10,7 @@ local UserInputService = Cloneref(game:GetService("UserInputService"))
 --[[ Variables ]]--
 local UIGesture = loadstring(game:HttpGet("https://raw.githubusercontent.com/isskkauww/Modules/refs/heads/main/UIGesture.luau"))()
 local ToggleBusy = false
+local IsMobile = UserInputService:GetPlatform() == Enum.Platform.Android or UserInputService:GetPlatform() == Enum.Platform.IOS
 
 local UI = {
 	CommandBar = {},
@@ -47,6 +48,8 @@ local ScreenGui = NewInstance("ScreenGui", {
 	DisplayOrder = 2147483647,
 })
 
+UI.AutoScale = NewInstance("UIScale", { Parent = ScreenGui })
+
 --[[ Toggle ]]--
 do
 	local ToggleButton = NewInstance("TextButton", {
@@ -79,13 +82,7 @@ do
 		TweenPress.Completed:Wait()
 		TweenRelease:Play()
 		if not UI.CmdOpen then
-			UI.CmdOpen = true
-			UI.CommandBar.Frame.Visible = true
-			UI.CommandBar.Frame.Size = UDim2.new(0, 0, 0, 48)
-			TweenService:Create(UI.CommandBar.Frame, TweenInfo.new(0.3, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), { Size = UDim2.new(0, 260, 0, 38) }):Play()
-			task.delay(0.1, function()
-				UI.CommandBar.InputBox:CaptureFocus()
-			end)
+			UI.CommandBar.Open()
 		end
 		TweenRelease.Completed:Wait()
 		ToggleBusy = false
@@ -94,92 +91,410 @@ end
 
 --[[ CommandBar ]]--
 do
+	local BarWidth = 520
+	local RowHeight = 38
+	UI.CommandBar.SuggLimit = 5
+
 	UI.CommandBar.Frame = NewInstance("Frame", {
 		Parent = ScreenGui,
-		Size = UDim2.new(0, 0, 0, 48),
+		Size = UDim2.new(0, 0, 0, 0),
 		Position = UDim2.new(0.5, 0, 0.5, 0),
 		AnchorPoint = Vector2.new(0.5, 0.5),
-		BackgroundColor3 = Color3.fromRGB(12, 12, 12),
+		BackgroundTransparency = 1,
+		BorderSizePixel = 0,
 		ClipsDescendants = true,
 		Visible = false,
+		ZIndex = 20,
 	})
 
-	NewInstance("UICorner", { Parent = UI.CommandBar.Frame, CornerRadius = UDim.new(0, 24) })
-
-	NewInstance("UIStroke", {
+	local Shell = NewInstance("Frame", {
 		Parent = UI.CommandBar.Frame,
-		Color = Color3.fromRGB(45, 45, 45),
-		Thickness = 1.5,
+		Size = UDim2.new(1, 0, 1, 0),
+		BackgroundColor3 = Color3.fromRGB(13, 13, 15),
+		BackgroundTransparency = 0.04,
+		BorderSizePixel = 0,
+		ZIndex = 20,
+	})
+
+	NewInstance("UICorner", { Parent = Shell, CornerRadius = UDim.new(0, 12) })
+
+	NewInstance("UIGradient", {
+		Parent = Shell,
+		Color = ColorSequence.new({
+			ColorSequenceKeypoint.new(0, Color3.fromRGB(20, 20, 23)),
+			ColorSequenceKeypoint.new(1, Color3.fromRGB(10, 10, 12)),
+		}),
+	})
+
+	local CmdOutline = NewInstance("UIStroke", {
+		Parent = Shell,
 		ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+		Color = Color3.fromRGB(235, 235, 240),
+		Thickness = 1.25,
+		Transparency = 0.58,
 	})
 
 	NewInstance("TextLabel", {
 		Parent = UI.CommandBar.Frame,
-		Size = UDim2.new(0, 36, 1, 0),
-		Position = UDim2.new(0, 8, 0, 0),
+		Size = UDim2.new(0, 18, 0, 22),
+		Position = UDim2.new(0, 15, 0.5, 0),
+		AnchorPoint = Vector2.new(0, 0.5),
 		BackgroundTransparency = 1,
-		Text = "⌘",
-		TextColor3 = Color3.fromRGB(160, 160, 160),
-		Font = Enum.Font.GothamBold,
+		Text = ">",
+		TextColor3 = Color3.fromRGB(255, 255, 255),
 		TextSize = 18,
+		FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Bold, Enum.FontStyle.Normal),
+		ZIndex = 24,
 	})
 
 	UI.CommandBar.InputBox = NewInstance("TextBox", {
 		Parent = UI.CommandBar.Frame,
-		Size = UDim2.new(1, -50, 1, 0),
-		Position = UDim2.new(0, 40, 0, 0),
+		Size = UDim2.new(1, -207, 1, 0),
+		Position = UDim2.new(0, 43, 0.5, 0),
+		AnchorPoint = Vector2.new(0, 0.5),
 		BackgroundTransparency = 1,
+		BorderSizePixel = 0,
 		Text = "",
-		TextColor3 = Color3.fromRGB(220, 220, 220),
+		TextColor3 = Color3.fromRGB(246, 246, 248),
 		PlaceholderText = "Type a command...",
-		PlaceholderColor3 = Color3.fromRGB(90, 90, 90),
-		Font = Enum.Font.GothamSemibold,
+		PlaceholderColor3 = Color3.fromRGB(130, 130, 138),
+		FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Medium, Enum.FontStyle.Normal),
 		TextSize = 15,
 		TextXAlignment = Enum.TextXAlignment.Left,
+		TextWrapped = false,
+		ClearTextOnFocus = false,
+		ClipsDescendants = true,
+		ZIndex = 23,
 	})
+
+	UI.CommandBar.Enter = NewInstance("TextButton", {
+		Parent = UI.CommandBar.Frame,
+		Size = UDim2.new(0, 52, 0, 22),
+		Position = UDim2.new(1, -12, 0.5, 0),
+		AnchorPoint = Vector2.new(1, 0.5),
+		BackgroundColor3 = Color3.fromRGB(31, 31, 35),
+		BackgroundTransparency = 0.08,
+		BorderSizePixel = 0,
+		AutoButtonColor = false,
+		Text = "ENTER",
+		TextColor3 = Color3.fromRGB(196, 196, 204),
+		TextSize = 9,
+		FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Bold, Enum.FontStyle.Normal),
+		ZIndex = 24,
+	})
+
+	NewInstance("UICorner", { Parent = UI.CommandBar.Enter, CornerRadius = UDim.new(0, 5) })
+
+	NewInstance("UIStroke", {
+		Parent = UI.CommandBar.Enter,
+		ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+		Color = Color3.fromRGB(255, 255, 255),
+		Thickness = 1,
+		Transparency = 0.78,
+	})
+
+	UI.CommandBar.Prediction = NewInstance("TextBox", {
+		Parent = UI.CommandBar.Frame,
+		Size = UDim2.new(1, -207, 1, 0),
+		Position = UDim2.new(0, 43, 0.5, 0),
+		AnchorPoint = Vector2.new(0, 0.5),
+		BackgroundTransparency = 1,
+		BorderSizePixel = 0,
+		Text = "",
+		TextColor3 = Color3.fromRGB(155, 155, 164),
+		TextTransparency = 0.55,
+		FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Medium, Enum.FontStyle.Normal),
+		TextSize = 15,
+		TextXAlignment = Enum.TextXAlignment.Left,
+		TextWrapped = false,
+		TextEditable = false,
+		Active = false,
+		Selectable = false,
+		ClipsDescendants = true,
+		Visible = false,
+		ZIndex = 22,
+	})
+
+	UI.CommandBar.Tab = NewInstance("TextLabel", {
+		Parent = UI.CommandBar.Frame,
+		Size = UDim2.new(0, 82, 0, 22),
+		Position = UDim2.new(1, -70, 0.5, 0),
+		AnchorPoint = Vector2.new(1, 0.5),
+		BackgroundColor3 = Color3.fromRGB(27, 27, 31),
+		BackgroundTransparency = 0.18,
+		BorderSizePixel = 0,
+		Text = "TAB  AUTOFILL",
+		TextColor3 = Color3.fromRGB(150, 150, 158),
+		TextSize = 9,
+		FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Bold, Enum.FontStyle.Normal),
+		ZIndex = 24,
+	})
+
+	NewInstance("UICorner", { Parent = UI.CommandBar.Tab, CornerRadius = UDim.new(0, 5) })
+
+	local TabOutline = NewInstance("UIStroke", {
+		Parent = UI.CommandBar.Tab,
+		ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+		Color = Color3.fromRGB(255, 255, 255),
+		Thickness = 1,
+		Transparency = 0.86,
+	})
+
+	local function SyncPrediction()
+		local Has = UI.CommandBar.Prediction.Text ~= "" and UI.CommandBar.Prediction.Text ~= UI.CommandBar.InputBox.Text
+		UI.CommandBar.Prediction.Visible = Has
+		UI.CommandBar.Tab.TextColor3 = Has and Color3.fromRGB(245, 245, 248) or Color3.fromRGB(150, 150, 158)
+		UI.CommandBar.Tab.BackgroundColor3 = Has and Color3.fromRGB(42, 42, 47) or Color3.fromRGB(27, 27, 31)
+		UI.CommandBar.Tab.BackgroundTransparency = Has and 0.04 or 0.18
+		TabOutline.Transparency = Has and 0.52 or 0.86
+	end
+
+	UI.CommandBar.Prediction:GetPropertyChangedSignal("Text"):Connect(SyncPrediction)
+	UI.CommandBar.InputBox:GetPropertyChangedSignal("Text"):Connect(SyncPrediction)
 
 	UI.CommandBar.SuggFrame = NewInstance("Frame", {
 		Parent = ScreenGui,
-		Size = UDim2.new(0, 400, 0, 0),
-		Position = UDim2.new(0.5, 0, 0.5, -32),
+		Size = UDim2.new(0, 520, 0, 0),
+		Position = UDim2.new(0.5, 0, 0.5, -33),
 		AnchorPoint = Vector2.new(0.5, 1),
 		BackgroundTransparency = 1,
+		BorderSizePixel = 0,
+		ClipsDescendants = true,
 		Visible = false,
+		ZIndex = 18,
+	})
+
+	NewInstance("UIPadding", {
+		Parent = UI.CommandBar.SuggFrame,
+		PaddingTop = UDim.new(0, 8),
+		PaddingBottom = UDim.new(0, 8),
+		PaddingLeft = UDim.new(0, 8),
+		PaddingRight = UDim.new(0, 8),
 	})
 
 	NewInstance("UIListLayout", {
 		Parent = UI.CommandBar.SuggFrame,
-		Padding = UDim.new(0, 10),
+		Padding = UDim.new(0, 6),
 		HorizontalAlignment = Enum.HorizontalAlignment.Center,
+		VerticalAlignment = Enum.VerticalAlignment.Top,
+		SortOrder = Enum.SortOrder.LayoutOrder,
 	})
 
 	UI.CommandBar.SuggItems = {}
-	for I = 1, 6 do
-		local Item = NewInstance("TextButton", {
+
+	local function RefreshSugg()
+		local Count = 0
+		for _, Item in ipairs(UI.CommandBar.SuggItems) do
+			if Item.Visible then
+				Count += 1
+			end
+		end
+
+		local Target = UDim2.new(0, BarWidth, 0, 16 + Count * RowHeight + (Count - 1) * 6)
+		if UI.CommandBar.SuggFrame.Visible then
+			TweenService:Create(UI.CommandBar.SuggFrame, TweenInfo.new(0.16, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), { Size = Target }):Play()
+		else
+			UI.CommandBar.SuggFrame.Size = Target
+		end
+	end
+
+	UI.CommandBar.SuggFrame:GetPropertyChangedSignal("Visible"):Connect(RefreshSugg)
+
+	for I = 1, 5 do
+		local Row = NewInstance("Frame", {
 			Parent = UI.CommandBar.SuggFrame,
-			Size = UDim2.new(0, 165, 0, 30),
-			BackgroundColor3 = Color3.fromRGB(12, 12, 12),
-			BackgroundTransparency = 0,
-			TextColor3 = Color3.fromRGB(255, 255, 255),
-			Font = Enum.Font.GothamBold,
-			TextSize = 12,
-			TextXAlignment = Enum.TextXAlignment.Center,
+			Size = UDim2.new(1, -16, 0, 38),
+			AnchorPoint = Vector2.new(0.5, 0),
+			BackgroundTransparency = 1,
+			BorderSizePixel = 0,
+			LayoutOrder = I,
+			Visible = false,
+			ZIndex = 19,
+		})
+
+		local RowShell = NewInstance("Frame", {
+			Parent = Row,
+			Size = UDim2.new(1, 0, 1, 0),
+			BackgroundColor3 = Color3.fromRGB(24, 24, 27),
+			BackgroundTransparency = 0.2,
+			BorderSizePixel = 0,
+			ZIndex = 20,
+		})
+
+		NewInstance("UICorner", { Parent = RowShell, CornerRadius = UDim.new(0, 8) })
+
+		NewInstance("UIGradient", {
+			Parent = RowShell,
+			Color = ColorSequence.new({
+				ColorSequenceKeypoint.new(0, Color3.fromRGB(30, 30, 34)),
+				ColorSequenceKeypoint.new(1, Color3.fromRGB(19, 19, 22)),
+			}),
+		})
+
+		local RowStroke = NewInstance("UIStroke", {
+			Parent = RowShell,
+			ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+			Color = Color3.fromRGB(225, 225, 232),
+			Thickness = 1,
+			Transparency = 0.76,
+		})
+
+		local RowLine = NewInstance("Frame", {
+			Parent = RowShell,
+			Size = UDim2.new(0, 2, 1, -16),
+			Position = UDim2.new(0, 7, 0.5, 0),
+			AnchorPoint = Vector2.new(0, 0.5),
+			BackgroundColor3 = Color3.fromRGB(245, 245, 248),
+			BackgroundTransparency = 0.42,
+			BorderSizePixel = 0,
+			ZIndex = 21,
+		})
+
+		NewInstance("UICorner", { Parent = RowLine, CornerRadius = UDim.new(0, 3) })
+
+		local Item = NewInstance("TextButton", {
+			Parent = Row,
+			Size = UDim2.new(1, 0, 1, 0),
+			BackgroundTransparency = 1,
+			BorderSizePixel = 0,
 			AutoButtonColor = false,
 			Text = "",
+			TextColor3 = Color3.fromRGB(232, 232, 236),
+			FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Medium, Enum.FontStyle.Normal),
+			TextSize = 14,
+			TextXAlignment = Enum.TextXAlignment.Left,
+			TextWrapped = false,
+			ClipsDescendants = true,
 			Visible = false,
-			LayoutOrder = I,
+			ZIndex = 22,
 		})
 
-		NewInstance("UICorner", { Parent = Item, CornerRadius = UDim.new(0, 7) })
-
-		NewInstance("UIStroke", {
+		NewInstance("UIPadding", {
 			Parent = Item,
-			Color = Color3.fromRGB(45, 45, 45),
-			Thickness = 1,
-			ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+			PaddingLeft = UDim.new(0, 16),
+			PaddingRight = UDim.new(0, 14),
 		})
+
+		local function Reveal()
+			RowShell.BackgroundColor3 = Color3.fromRGB(24, 24, 27)
+			RowShell.BackgroundTransparency = 0.2
+			RowStroke.Transparency = 0.76
+			RowLine.BackgroundTransparency = 0.42
+			Row.Size = UDim2.new(0.96, -16, 0, RowHeight - 2)
+			TweenService:Create(Row, TweenInfo.new(0.18, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), { Size = UDim2.new(1, -16, 0, RowHeight) }):Play()
+		end
+
+		local function Hover(Active)
+			local Info = TweenInfo.new(0.12, Enum.EasingStyle.Sine, Enum.EasingDirection.Out)
+			TweenService:Create(RowShell, Info, {
+				BackgroundColor3 = Active and Color3.fromRGB(38, 38, 43) or Color3.fromRGB(24, 24, 27),
+				BackgroundTransparency = Active and 0.08 or 0.2,
+			}):Play()
+			TweenService:Create(RowStroke, Info, { Transparency = Active and 0.28 or 0.76 }):Play()
+			TweenService:Create(RowLine, Info, { BackgroundTransparency = Active and 0.05 or 0.42 }):Play()
+		end
+
+		Item.MouseEnter:Connect(function()
+			Hover(true)
+		end)
+
+		Item.MouseLeave:Connect(function()
+			Hover(false)
+		end)
+
+		Item:GetPropertyChangedSignal("Visible"):Connect(function()
+			Row.Visible = Item.Visible
+			if Item.Visible then
+				Reveal()
+			end
+			RefreshSugg()
+		end)
+
+		Item:GetPropertyChangedSignal("Text"):Connect(function()
+			if Item.Visible and Item.Text ~= "" then
+				Reveal()
+			end
+		end)
 
 		UI.CommandBar.SuggItems[I] = Item
+	end
+
+	local function ResetRows()
+		for _, Item in ipairs(UI.CommandBar.SuggItems) do
+			Item.Parent.Size = UDim2.new(1, -16, 0, RowHeight)
+		end
+	end
+
+	local function Relayout()
+		local ScreenSize = ScreenGui.AbsoluteSize
+		local Scale = math.max(UI.AutoScale.Scale, 0.01)
+		BarWidth = math.min(520, math.max(280, math.floor((ScreenSize.X - 24) / Scale + 0.5)))
+
+		local Compact = IsMobile and ScreenSize.Y < 620
+		UI.CommandBar.SuggLimit = Compact and 3 or 5
+		RowHeight = Compact and 40 or 38
+
+		local Clearance = IsMobile and 76 or 164
+		UI.CommandBar.InputBox.Size = UDim2.new(1, -(43 + Clearance), 1, 0)
+		UI.CommandBar.Prediction.Size = UI.CommandBar.InputBox.Size
+		UI.CommandBar.Tab.Visible = not IsMobile
+
+		if UI.CmdOpen then
+			UI.CommandBar.Frame.Size = UDim2.new(0, BarWidth, 0, 46)
+		end
+
+		ResetRows()
+		RefreshSugg()
+	end
+
+	ScreenGui:GetPropertyChangedSignal("AbsoluteSize"):Connect(Relayout)
+	UI.AutoScale:GetPropertyChangedSignal("Scale"):Connect(Relayout)
+	Relayout()
+
+	function UI.CommandBar.Open()
+		UI.CmdOpen = true
+		ResetRows()
+		UI.CommandBar.InputBox.Text = ""
+		UI.CommandBar.Frame.Visible = true
+		UI.CommandBar.Frame.Size = UDim2.new(0, BarWidth - 36, 0, 44)
+		TweenService:Create(CmdOutline, TweenInfo.new(0.108, Enum.EasingStyle.Sine, Enum.EasingDirection.Out), { Transparency = 0.18 }):Play()
+		TweenService:Create(UI.CommandBar.Enter, TweenInfo.new(0.108, Enum.EasingStyle.Sine, Enum.EasingDirection.Out), {
+			TextColor3 = Color3.fromRGB(245, 245, 248),
+			BackgroundColor3 = Color3.fromRGB(40, 40, 45),
+		}):Play()
+		TweenService:Create(UI.CommandBar.Frame, TweenInfo.new(0.108, Enum.EasingStyle.Back, Enum.EasingDirection.Out), { Size = UDim2.new(0, BarWidth, 0, 46) }):Play()
+		task.delay(0.1, function()
+			UI.CommandBar.InputBox:CaptureFocus()
+		end)
+	end
+
+	function UI.CommandBar.Close()
+		UI.CmdOpen = false
+		TweenService:Create(CmdOutline, TweenInfo.new(0.18, Enum.EasingStyle.Sine, Enum.EasingDirection.Out), { Transparency = 0.58 }):Play()
+		TweenService:Create(UI.CommandBar.Enter, TweenInfo.new(0.18, Enum.EasingStyle.Sine, Enum.EasingDirection.Out), {
+			TextColor3 = Color3.fromRGB(196, 196, 204),
+			BackgroundColor3 = Color3.fromRGB(31, 31, 35),
+		}):Play()
+
+		for _, Item in ipairs(UI.CommandBar.SuggItems) do
+			if Item.Visible then
+				TweenService:Create(Item.Parent, TweenInfo.new(0.12, Enum.EasingStyle.Exponential, Enum.EasingDirection.In), { Size = UDim2.new(0.96, -16, 0, 34) }):Play()
+			end
+		end
+
+		task.delay(0.14, function()
+			if UI.CmdOpen then return end
+			UI.CommandBar.SuggFrame.Visible = false
+			ResetRows()
+		end)
+
+		local CloseTween = TweenService:Create(UI.CommandBar.Frame, TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.InOut), { Size = UDim2.new(0, 0, 0, 0) })
+		CloseTween.Completed:Connect(function()
+			if not UI.CmdOpen then
+				UI.CommandBar.Frame.Visible = false
+			end
+		end)
+		CloseTween:Play()
 	end
 end
 
@@ -311,7 +626,7 @@ do
 				Visible = false,
 				ClipsDescendants = HasValue,
 				Size = HasValue and UDim2.new(0, 130, 0, 44) or UDim2.new(0, 100, 0, 40),
-				Position = HasValue and UDim2.new(1, -146, 0, 20) or UDim2.new(1, -120, 0, 20),
+				Position = UDim2.new(0.8, 0, 0.7, 0),
 			})
 			Hud.Frame = Frame
 
@@ -421,7 +736,7 @@ do
 				Visible = false,
 				ClipsDescendants = HasValue,
 				Size = HasValue and UDim2.new(0, 130, 0, 44) or UDim2.new(0, 100, 0, 40),
-				Position = HasValue and UDim2.new(1, -146, 0, 20) or UDim2.new(1, -120, 0, 20),
+				Position = UDim2.new(0.8, 0, 0.7, 0),
 			})
 			Hud.Frame = Frame
 
