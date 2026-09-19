@@ -57,11 +57,12 @@ do
 		BackgroundColor3 = Color3.fromRGB(46, 46, 47),
 		BackgroundTransparency = 0.14,
 		Position = UDim2.new(0.489, 0, 0.07, 0),
-		Size = UDim2.new(0, 32, 0, 33),
+		Size = UDim2.new(0, 0, 0, 0),
 		Font = Enum.Font.SourceSansBold,
 		Text = "NN",
 		TextColor3 = Color3.new(1, 1, 1),
 		TextSize = 20,
+		TextTransparency = 1,
 		ZIndex = 10,
 	})
 
@@ -69,14 +70,15 @@ do
 
 	UIGesture:MakeDraggable(ToggleButton)
 
-	local ToggleScale = NewInstance("UIScale", { Parent = ToggleButton })
+	TweenService:Create(ToggleButton, TweenInfo.new(1, Enum.EasingStyle.Elastic, Enum.EasingDirection.Out), { Size = UDim2.new(0, 32, 0, 33), TextTransparency = 0 }):Play()
+	TweenService:Create(ToggleButton, TweenInfo.new(1.5, Enum.EasingStyle.Elastic, Enum.EasingDirection.Out), { Rotation = 720 }):Play()
 
 	ToggleButton.Activated:Connect(function()
 		if ToggleBusy then return end
 		ToggleBusy = true
 
-		local TweenPress = TweenService:Create(ToggleScale, TweenInfo.new(0.08, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { Scale = 0.78 })
-		local TweenRelease = TweenService:Create(ToggleScale, TweenInfo.new(0.22, Enum.EasingStyle.Back, Enum.EasingDirection.Out), { Scale = 1 })
+		local TweenPress = TweenService:Create(ToggleButton, TweenInfo.new(0.08, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { Size = UDim2.new(0, 32 * 0.78, 0, 33 * 0.78) })
+		local TweenRelease = TweenService:Create(ToggleButton, TweenInfo.new(0.22, Enum.EasingStyle.Back, Enum.EasingDirection.Out), { Size = UDim2.new(0, 32, 0, 33) })
 
 		TweenPress:Play()
 		TweenPress.Completed:Wait()
@@ -394,13 +396,7 @@ do
 			TweenService:Create(RowLine, Info, { BackgroundTransparency = Active and 0.05 or 0.42 }):Play()
 		end
 
-		Item.MouseEnter:Connect(function()
-			Hover(true)
-		end)
-
-		Item.MouseLeave:Connect(function()
-			Hover(false)
-		end)
+		UIGesture:MakeHoverable(Item, nil, Hover)
 
 		Item:GetPropertyChangedSignal("Visible"):Connect(function()
 			Row.Visible = Item.Visible
@@ -626,7 +622,7 @@ do
 				Visible = false,
 				ClipsDescendants = HasValue,
 				Size = HasValue and UDim2.new(0, 130, 0, 44) or UDim2.new(0, 100, 0, 40),
-				Position = UDim2.new(0.8, 0, 0.7, 0),
+				Position = UDim2.new(0.8, 0, 0.3, 0),
 			})
 			Hud.Frame = Frame
 
@@ -736,7 +732,7 @@ do
 				Visible = false,
 				ClipsDescendants = HasValue,
 				Size = HasValue and UDim2.new(0, 130, 0, 44) or UDim2.new(0, 100, 0, 40),
-				Position = UDim2.new(0.8, 0, 0.7, 0),
+				Position = UDim2.new(0.8, 0, 0.3, 0),
 			})
 			Hud.Frame = Frame
 
