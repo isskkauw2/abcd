@@ -66,6 +66,8 @@ do
 		ZIndex = 10,
 	})
 
+	UI.ToggleButton = ToggleButton
+
 	NewInstance("UICorner", { Parent = ToggleButton, CornerRadius = UDim.new(0.5, 0) })
 
 	UIGesture:MakeDraggable(ToggleButton)
@@ -394,6 +396,9 @@ do
 			}):Play()
 			TweenService:Create(RowStroke, Info, { Transparency = Active and 0.28 or 0.76 }):Play()
 			TweenService:Create(RowLine, Info, { BackgroundTransparency = Active and 0.05 or 0.42 }):Play()
+			if Active then
+				UI.CommandBar.InputBox:CaptureFocus()
+			end
 		end
 
 		UIGesture:MakeHoverable(Item, nil, Hover)
