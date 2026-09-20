@@ -63,6 +63,7 @@ do
 		TextColor3 = Color3.new(1, 1, 1),
 		TextSize = 20,
 		TextTransparency = 1,
+		Visible = false,
 		ZIndex = 10,
 	})
 
@@ -72,8 +73,11 @@ do
 
 	UIGesture:MakeDraggable(ToggleButton)
 
-	TweenService:Create(ToggleButton, TweenInfo.new(1, Enum.EasingStyle.Elastic, Enum.EasingDirection.Out), { Size = UDim2.new(0, 32, 0, 33), TextTransparency = 0 }):Play()
-	TweenService:Create(ToggleButton, TweenInfo.new(1.5, Enum.EasingStyle.Elastic, Enum.EasingDirection.Out), { Rotation = 720 }):Play()
+	function UI.PlayToggleSpawn()
+		ToggleButton.Visible = true
+		TweenService:Create(ToggleButton, TweenInfo.new(1, Enum.EasingStyle.Elastic, Enum.EasingDirection.Out), { Size = UDim2.new(0, 32, 0, 33), TextTransparency = 0 }):Play()
+		TweenService:Create(ToggleButton, TweenInfo.new(1.5, Enum.EasingStyle.Elastic, Enum.EasingDirection.Out), { Rotation = 720 }):Play()
+	end
 
 	ToggleButton.Activated:Connect(function()
 		if ToggleBusy then return end
