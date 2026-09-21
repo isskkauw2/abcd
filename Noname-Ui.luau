@@ -616,7 +616,7 @@ do
 		BackgroundTransparency = 0.08,
 		BorderSizePixel = 0,
 		AutoButtonColor = false,
-		Text = "x",
+		Text = "X",
 		TextColor3 = Color3.fromRGB(196, 196, 204),
 		TextSize = 14,
 		FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Bold, Enum.FontStyle.Normal),
@@ -973,10 +973,24 @@ do
 		CloseTween:Play()
 	end
 
+	NewInstance("TextLabel", {
+		Parent = Frame,
+		Size = UDim2.new(1, -70, 0, 26),
+		Position = UDim2.new(0, 20, 0, 14),
+		BackgroundTransparency = 1,
+		Text = "Select One",
+		TextColor3 = Color3.fromRGB(246, 246, 248),
+		TextSize = 15,
+		TextXAlignment = Enum.TextXAlignment.Left,
+		TextYAlignment = Enum.TextYAlignment.Center,
+		FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Bold, Enum.FontStyle.Normal),
+		ZIndex = 42,
+	})
+
 	local Content = NewInstance("Frame", {
 		Parent = Frame,
-		Size = UDim2.new(1, -32, 1, -32),
-		Position = UDim2.new(0, 16, 0, 16),
+		Size = UDim2.new(1, -32, 1, -62),
+		Position = UDim2.new(0, 16, 0, 46),
 		BackgroundTransparency = 1,
 		BorderSizePixel = 0,
 		ZIndex = 41,
@@ -1101,29 +1115,22 @@ do
 	end
 
 	local CloseButton = NewInstance("TextButton", {
-		Parent = Content,
-		Size = UDim2.new(1, 0, 0, 32),
+		Parent = Frame,
+		Size = UDim2.new(0, 26, 0, 26),
+		Position = UDim2.new(1, -14, 0, 14),
+		AnchorPoint = Vector2.new(1, 0),
 		BackgroundColor3 = Color3.fromRGB(31, 31, 35),
 		BackgroundTransparency = 0.08,
 		BorderSizePixel = 0,
 		AutoButtonColor = false,
-		Text = "Close",
+		Text = "X",
 		TextColor3 = Color3.fromRGB(196, 196, 204),
-		TextSize = 13,
+		TextSize = 14,
 		FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Bold, Enum.FontStyle.Normal),
-		LayoutOrder = 5,
-		ZIndex = 41,
+		ZIndex = 42,
 	})
 
-	NewInstance("UICorner", { Parent = CloseButton, CornerRadius = UDim.new(0, 8) })
-
-	NewInstance("UIStroke", {
-		Parent = CloseButton,
-		ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
-		Color = Color3.fromRGB(255, 255, 255),
-		Thickness = 1,
-		Transparency = 0.78,
-	})
+	NewInstance("UICorner", { Parent = CloseButton, CornerRadius = UDim.new(0, 7) })
 
 	UIGesture:MakeHoverable(CloseButton, nil, function(Active)
 		TweenService:Create(CloseButton, TweenInfo.new(0.12, Enum.EasingStyle.Sine, Enum.EasingDirection.Out), {
@@ -1136,7 +1143,7 @@ do
 
 	local function GetSize()
 		local Scale = math.max(UI.AutoScale.Scale, 0.01)
-		return UDim2.new(0, math.min(360, math.max(240, math.floor((ScreenGui.AbsoluteSize.X - 40) / Scale + 0.5))), 0, 64 + 50 * Count)
+		return UDim2.new(0, math.min(360, math.max(240, math.floor((ScreenGui.AbsoluteSize.X - 40) / Scale + 0.5))), 0, 56 + 50 * Count)
 	end
 
 	local function Relayout()
