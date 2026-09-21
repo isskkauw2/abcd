@@ -109,6 +109,7 @@ do
 		TextTransparency = 1,
 		Visible = false,
 		ZIndex = 10,
+		AnchorPoint = Vector2.new(0.5, 0.5),
 	})
 
 	UI.ToggleButton = ToggleButton
