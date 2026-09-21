@@ -890,9 +890,6 @@ do
 		Frame.Size = UDim2.new(0, Width - 60, 0, Height - 60)
 		TweenService:Create(ListOutline, TweenInfo.new(0.108, Enum.EasingStyle.Sine, Enum.EasingDirection.Out), { Transparency = 0.18 }):Play()
 		TweenService:Create(Frame, TweenInfo.new(0.16, Enum.EasingStyle.Back, Enum.EasingDirection.Out), { Size = UDim2.new(0, Width, 0, Height) }):Play()
-		task.delay(0.1, function()
-			SearchBox:CaptureFocus()
-		end)
 	end
 
 	function UI.CommandList.Close()
@@ -914,6 +911,267 @@ do
 		else
 			Open()
 		end
+	end
+end
+
+--[[ Picker ]]--
+do
+	local Count = 0
+	local Rows = {}
+	local PickerOpen = false
+
+	local Frame = NewInstance("Frame", {
+		Parent = ScreenGui,
+		Size = UDim2.new(0, 0, 0, 0),
+		Position = UDim2.new(0.5, 0, 0.3, 0),
+		AnchorPoint = Vector2.new(0.5, 0.5),
+		BackgroundTransparency = 1,
+		BorderSizePixel = 0,
+		ClipsDescendants = true,
+		Visible = false,
+		ZIndex = 40,
+	})
+
+	local Shell = NewInstance("Frame", {
+		Parent = Frame,
+		Size = UDim2.new(1, 0, 1, 0),
+		BackgroundColor3 = Color3.fromRGB(13, 13, 15),
+		BackgroundTransparency = 0.04,
+		BorderSizePixel = 0,
+		ZIndex = 40,
+	})
+
+	NewInstance("UICorner", { Parent = Shell, CornerRadius = UDim.new(0, 14) })
+
+	NewInstance("UIGradient", {
+		Parent = Shell,
+		Rotation = 90,
+		Color = ColorSequence.new({
+			ColorSequenceKeypoint.new(0, Color3.fromRGB(20, 20, 23)),
+			ColorSequenceKeypoint.new(1, Color3.fromRGB(10, 10, 12)),
+		}),
+	})
+
+	local PickerOutline = NewInstance("UIStroke", {
+		Parent = Shell,
+		ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+		Color = Color3.fromRGB(235, 235, 240),
+		Thickness = 1.25,
+		Transparency = 0.58,
+	})
+
+	local function Close()
+		PickerOpen = false
+		TweenService:Create(PickerOutline, TweenInfo.new(0.18, Enum.EasingStyle.Sine, Enum.EasingDirection.Out), { Transparency = 0.58 }):Play()
+
+		local CloseTween = TweenService:Create(Frame, TweenInfo.new(0.32, Enum.EasingStyle.Back, Enum.EasingDirection.InOut), { Size = UDim2.new(0, 0, 0, 0) })
+		CloseTween.Completed:Connect(function()
+			if not PickerOpen then
+				Frame.Visible = false
+			end
+		end)
+		CloseTween:Play()
+	end
+
+	local Content = NewInstance("Frame", {
+		Parent = Frame,
+		Size = UDim2.new(1, -32, 1, -32),
+		Position = UDim2.new(0, 16, 0, 16),
+		BackgroundTransparency = 1,
+		BorderSizePixel = 0,
+		ZIndex = 41,
+	})
+
+	NewInstance("UIListLayout", {
+		Parent = Content,
+		Padding = UDim.new(0, 6),
+		HorizontalAlignment = Enum.HorizontalAlignment.Center,
+		VerticalAlignment = Enum.VerticalAlignment.Top,
+		SortOrder = Enum.SortOrder.LayoutOrder,
+	})
+
+	for Index = 1, 4 do
+		local Row = NewInstance("Frame", {
+			Parent = Content,
+			Size = UDim2.new(1, 0, 0, 44),
+			BackgroundTransparency = 1,
+			BorderSizePixel = 0,
+			LayoutOrder = Index,
+			Visible = false,
+			ZIndex = 41,
+		})
+
+		local RowShell = NewInstance("Frame", {
+			Parent = Row,
+			Size = UDim2.new(1, 0, 1, 0),
+			BackgroundColor3 = Color3.fromRGB(24, 24, 27),
+			BackgroundTransparency = 0.2,
+			BorderSizePixel = 0,
+			ZIndex = 41,
+		})
+
+		NewInstance("UICorner", { Parent = RowShell, CornerRadius = UDim.new(0, 8) })
+
+		local RowStroke = NewInstance("UIStroke", {
+			Parent = RowShell,
+			ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+			Color = Color3.fromRGB(225, 225, 232),
+			Thickness = 1,
+			Transparency = 0.76,
+		})
+
+		local RowLine = NewInstance("Frame", {
+			Parent = RowShell,
+			Size = UDim2.new(0, 2, 1, -16),
+			Position = UDim2.new(0, 7, 0.5, 0),
+			AnchorPoint = Vector2.new(0, 0.5),
+			BackgroundColor3 = Color3.fromRGB(245, 245, 248),
+			BackgroundTransparency = 0.42,
+			BorderSizePixel = 0,
+			ZIndex = 42,
+		})
+
+		NewInstance("UICorner", { Parent = RowLine, CornerRadius = UDim.new(0, 3) })
+
+		local TitleLabel = NewInstance("TextLabel", {
+			Parent = RowShell,
+			Size = UDim2.new(1, -30, 0, 20),
+			Position = UDim2.new(0, 18, 0, 5),
+			BackgroundTransparency = 1,
+			Text = "",
+			TextColor3 = Color3.fromRGB(232, 232, 236),
+			FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Bold, Enum.FontStyle.Normal),
+			TextSize = 14,
+			TextXAlignment = Enum.TextXAlignment.Left,
+			TextWrapped = false,
+			ClipsDescendants = true,
+			ZIndex = 43,
+		})
+
+		local DescLabel = NewInstance("TextLabel", {
+			Parent = RowShell,
+			Size = UDim2.new(1, -30, 0, 16),
+			Position = UDim2.new(0, 18, 0, 23),
+			BackgroundTransparency = 1,
+			Text = "",
+			TextColor3 = Color3.fromRGB(150, 150, 158),
+			FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Medium, Enum.FontStyle.Normal),
+			TextSize = 12,
+			TextXAlignment = Enum.TextXAlignment.Left,
+			TextWrapped = false,
+			ClipsDescendants = true,
+			ZIndex = 43,
+		})
+
+		local Button = NewInstance("TextButton", {
+			Parent = Row,
+			Size = UDim2.new(1, 0, 1, 0),
+			BackgroundTransparency = 1,
+			BorderSizePixel = 0,
+			AutoButtonColor = false,
+			Text = "",
+			ZIndex = 44,
+		})
+
+		UIGesture:MakeHoverable(Button, nil, function(Active)
+			TweenService:Create(RowShell, TweenInfo.new(0.12, Enum.EasingStyle.Sine, Enum.EasingDirection.Out), {
+				BackgroundColor3 = Active and Color3.fromRGB(38, 38, 43) or Color3.fromRGB(24, 24, 27),
+				BackgroundTransparency = Active and 0.08 or 0.2,
+			}):Play()
+			TweenService:Create(RowStroke, TweenInfo.new(0.12, Enum.EasingStyle.Sine, Enum.EasingDirection.Out), { Transparency = Active and 0.28 or 0.76 }):Play()
+			TweenService:Create(RowLine, TweenInfo.new(0.12, Enum.EasingStyle.Sine, Enum.EasingDirection.Out), { BackgroundTransparency = Active and 0.05 or 0.42 }):Play()
+		end)
+
+		Button.Activated:Connect(function()
+			if not PickerOpen then return end
+			Close()
+			if Rows[Index].Fn then
+				Rows[Index].Fn()
+			end
+		end)
+
+		Rows[Index] = {
+			Row = Row,
+			Shell = RowShell,
+			Stroke = RowStroke,
+			Line = RowLine,
+			Title = TitleLabel,
+			Desc = DescLabel,
+		}
+	end
+
+	local CloseButton = NewInstance("TextButton", {
+		Parent = Content,
+		Size = UDim2.new(1, 0, 0, 32),
+		BackgroundColor3 = Color3.fromRGB(31, 31, 35),
+		BackgroundTransparency = 0.08,
+		BorderSizePixel = 0,
+		AutoButtonColor = false,
+		Text = "Close",
+		TextColor3 = Color3.fromRGB(196, 196, 204),
+		TextSize = 13,
+		FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Bold, Enum.FontStyle.Normal),
+		LayoutOrder = 5,
+		ZIndex = 41,
+	})
+
+	NewInstance("UICorner", { Parent = CloseButton, CornerRadius = UDim.new(0, 8) })
+
+	NewInstance("UIStroke", {
+		Parent = CloseButton,
+		ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+		Color = Color3.fromRGB(255, 255, 255),
+		Thickness = 1,
+		Transparency = 0.78,
+	})
+
+	UIGesture:MakeHoverable(CloseButton, nil, function(Active)
+		TweenService:Create(CloseButton, TweenInfo.new(0.12, Enum.EasingStyle.Sine, Enum.EasingDirection.Out), {
+			BackgroundColor3 = Active and Color3.fromRGB(40, 40, 45) or Color3.fromRGB(31, 31, 35),
+			TextColor3 = Active and Color3.fromRGB(245, 245, 248) or Color3.fromRGB(196, 196, 204),
+		}):Play()
+	end)
+
+	CloseButton.Activated:Connect(Close)
+
+	local function GetSize()
+		local Scale = math.max(UI.AutoScale.Scale, 0.01)
+		return UDim2.new(0, math.min(360, math.max(240, math.floor((ScreenGui.AbsoluteSize.X - 40) / Scale + 0.5))), 0, 64 + 50 * Count)
+	end
+
+	local function Relayout()
+		if PickerOpen then
+			Frame.Size = GetSize()
+		end
+	end
+
+	ScreenGui:GetPropertyChangedSignal("AbsoluteSize"):Connect(Relayout)
+	UI.AutoScale:GetPropertyChangedSignal("Scale"):Connect(Relayout)
+
+	function UI.CreatePicker(Config)
+		Count = math.min(#Config, 4)
+
+		for Index = 1, 4 do
+			Rows[Index].Row.Visible = Index <= Count
+
+			if Index <= Count then
+				Rows[Index].Fn = Config[Index].Fn
+				Rows[Index].Title.Text = Config[Index].Title
+				Rows[Index].Desc.Text = Config[Index].Desc or ""
+				Rows[Index].Line.BackgroundColor3 = Config[Index].Accent or Color3.fromRGB(245, 245, 248)
+				Rows[Index].Line.BackgroundTransparency = 0.42
+				Rows[Index].Shell.BackgroundColor3 = Color3.fromRGB(24, 24, 27)
+				Rows[Index].Shell.BackgroundTransparency = 0.2
+				Rows[Index].Stroke.Transparency = 0.76
+			end
+		end
+
+		local Size = GetSize()
+		PickerOpen = true
+		Frame.Visible = true
+		Frame.Size = UDim2.new(0, Size.X.Offset - 40, 0, Size.Y.Offset - 40)
+		TweenService:Create(PickerOutline, TweenInfo.new(0.108, Enum.EasingStyle.Sine, Enum.EasingDirection.Out), { Transparency = 0.18 }):Play()
+		TweenService:Create(Frame, TweenInfo.new(0.16, Enum.EasingStyle.Back, Enum.EasingDirection.Out), { Size = Size }):Play()
 	end
 end
 
