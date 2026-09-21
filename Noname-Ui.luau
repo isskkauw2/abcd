@@ -128,7 +128,7 @@ do
 		if ToggleBusy then return end
 		ToggleBusy = true
 
-		local TweenPress = TweenService:Create(ToggleButton, TweenInfo.new(0.08, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { Size = UDim2.new(0, 32 * 0.78, 0, 33 * 0.78) })
+		local TweenPress = TweenService:Create(ToggleButton, TweenInfo.new(0.08, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { Size = UDim2.new(0, 32 * 0.7, 0, 33 * 0.7) })
 		local TweenRelease = TweenService:Create(ToggleButton, TweenInfo.new(0.22, Enum.EasingStyle.Back, Enum.EasingDirection.Out), { Size = UDim2.new(0, 32, 0, 33) })
 
 		TweenPress:Play()
@@ -590,11 +590,12 @@ do
 		Transparency = 0.58,
 	})
 
-	NewInstance("TextLabel", {
+	local Title = NewInstance("TextLabel", {
 		Parent = Frame,
 		Size = UDim2.new(1, -70, 0, 40),
 		Position = UDim2.new(0, 20, 0, 0),
 		BackgroundTransparency = 1,
+		Active = true,
 		Text = "COMMAND LIST",
 		TextColor3 = Color3.fromRGB(246, 246, 248),
 		TextSize = 15,
@@ -603,6 +604,8 @@ do
 		FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Bold, Enum.FontStyle.Normal),
 		ZIndex = 32,
 	})
+
+	UIGesture:MakeDraggable(Frame, Title)
 
 	local CloseButton = NewInstance("TextButton", {
 		Parent = Frame,
@@ -1042,7 +1045,7 @@ do
 				Visible = false,
 				ClipsDescendants = HasValue,
 				Size = HasValue and UDim2.new(0, 130, 0, 44) or UDim2.new(0, 100, 0, 40),
-				Position = UDim2.new(0.8, 0, 0.3, 0),
+				Position = UDim2.new(0.84, 0, 0.17, 0),
 			})
 			Hud.Frame = Frame
 
@@ -1152,7 +1155,7 @@ do
 				Visible = false,
 				ClipsDescendants = HasValue,
 				Size = HasValue and UDim2.new(0, 130, 0, 44) or UDim2.new(0, 100, 0, 40),
-				Position = UDim2.new(0.8, 0, 0.3, 0),
+				Position = UDim2.new(0.84, 0, 0.17, 0),
 			})
 			Hud.Frame = Frame
 
