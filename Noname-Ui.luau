@@ -742,7 +742,7 @@ do
 
 		local Row = NewInstance("Frame", {
 			Parent = ListFrame,
-			Size = UDim2.new(1, 0, 0, 44),
+			Size = UDim2.new(0.95, 0, 0, 44),
 			BackgroundTransparency = 1,
 			BorderSizePixel = 0,
 			LayoutOrder = #Entries + 1,
@@ -781,40 +781,35 @@ do
 
 		NewInstance("UICorner", { Parent = RowLine, CornerRadius = UDim.new(0, 3) })
 
-		local HasDesc = Description ~= nil and Description ~= ""
-
 		NewInstance("TextLabel", {
 			Parent = RowShell,
-			Size = HasDesc and UDim2.new(1, -30, 0, 20) or UDim2.new(1, -30, 0, 24),
-			Position = HasDesc and UDim2.new(0, 18, 0, 5) or UDim2.new(0, 18, 0.5, 0),
-			AnchorPoint = HasDesc and Vector2.new(0, 0) or Vector2.new(0, 0.5),
+			Size = UDim2.new(1, -30, 0, 20),
+			Position = UDim2.new(0, 18, 0, 5),
 			BackgroundTransparency = 1,
 			Text = table.concat(Aliases, ", "),
 			TextColor3 = Color3.fromRGB(232, 232, 236),
 			FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Bold, Enum.FontStyle.Normal),
-			TextSize = HasDesc and 14 or 15,
+			TextSize = 14,
 			TextXAlignment = Enum.TextXAlignment.Left,
 			TextWrapped = false,
 			ClipsDescendants = true,
 			ZIndex = 33,
 		})
 
-		if HasDesc then
-			NewInstance("TextLabel", {
-				Parent = RowShell,
-				Size = UDim2.new(1, -30, 0, 16),
-				Position = UDim2.new(0, 18, 0, 23),
-				BackgroundTransparency = 1,
-				Text = Description,
-				TextColor3 = Color3.fromRGB(150, 150, 158),
-				FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Medium, Enum.FontStyle.Normal),
-				TextSize = 12,
-				TextXAlignment = Enum.TextXAlignment.Left,
-				TextWrapped = false,
-				ClipsDescendants = true,
-				ZIndex = 33,
-			})
-		end
+		NewInstance("TextLabel", {
+			Parent = RowShell,
+			Size = UDim2.new(1, -30, 0, 16),
+			Position = UDim2.new(0, 18, 0, 23),
+			BackgroundTransparency = 1,
+			Text = Description or "",
+			TextColor3 = Color3.fromRGB(150, 150, 158),
+			FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Medium, Enum.FontStyle.Normal),
+			TextSize = 12,
+			TextXAlignment = Enum.TextXAlignment.Left,
+			TextWrapped = false,
+			ClipsDescendants = true,
+			ZIndex = 33,
+		})
 
 		local Button = NewInstance("TextButton", {
 			Parent = Row,
@@ -1167,9 +1162,16 @@ do
 			Rows[Index].Row.Visible = Index <= Count
 
 			if Index <= Count then
+				local HasDesc = Config[Index].Desc ~= nil and Config[Index].Desc ~= ""
+
 				Rows[Index].Fn = Config[Index].Fn
 				Rows[Index].Title.Text = Config[Index].Title
+				Rows[Index].Title.Size = HasDesc and UDim2.new(1, -30, 0, 20) or UDim2.new(1, -30, 0, 24)
+				Rows[Index].Title.Position = HasDesc and UDim2.new(0, 18, 0, 5) or UDim2.new(0, 18, 0.5, 0)
+				Rows[Index].Title.AnchorPoint = HasDesc and Vector2.new(0, 0) or Vector2.new(0, 0.5)
+				Rows[Index].Title.TextSize = HasDesc and 14 or 15
 				Rows[Index].Desc.Text = Config[Index].Desc or ""
+				Rows[Index].Desc.Visible = HasDesc
 				Rows[Index].Line.BackgroundColor3 = Config[Index].Accent or Color3.fromRGB(245, 245, 248)
 				Rows[Index].Line.BackgroundTransparency = 0.42
 				Rows[Index].Shell.BackgroundColor3 = Color3.fromRGB(24, 24, 27)
