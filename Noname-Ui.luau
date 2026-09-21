@@ -781,35 +781,40 @@ do
 
 		NewInstance("UICorner", { Parent = RowLine, CornerRadius = UDim.new(0, 3) })
 
+		local HasDesc = Description ~= nil and Description ~= ""
+
 		NewInstance("TextLabel", {
 			Parent = RowShell,
-			Size = UDim2.new(1, -30, 0, 20),
-			Position = UDim2.new(0, 18, 0, 5),
+			Size = HasDesc and UDim2.new(1, -30, 0, 20) or UDim2.new(1, -30, 0, 24),
+			Position = HasDesc and UDim2.new(0, 18, 0, 5) or UDim2.new(0, 18, 0.5, 0),
+			AnchorPoint = HasDesc and Vector2.new(0, 0) or Vector2.new(0, 0.5),
 			BackgroundTransparency = 1,
 			Text = table.concat(Aliases, ", "),
 			TextColor3 = Color3.fromRGB(232, 232, 236),
 			FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Bold, Enum.FontStyle.Normal),
-			TextSize = 14,
+			TextSize = HasDesc and 14 or 15,
 			TextXAlignment = Enum.TextXAlignment.Left,
 			TextWrapped = false,
 			ClipsDescendants = true,
 			ZIndex = 33,
 		})
 
-		NewInstance("TextLabel", {
-			Parent = RowShell,
-			Size = UDim2.new(1, -30, 0, 16),
-			Position = UDim2.new(0, 18, 0, 23),
-			BackgroundTransparency = 1,
-			Text = Description or "",
-			TextColor3 = Color3.fromRGB(150, 150, 158),
-			FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Medium, Enum.FontStyle.Normal),
-			TextSize = 12,
-			TextXAlignment = Enum.TextXAlignment.Left,
-			TextWrapped = false,
-			ClipsDescendants = true,
-			ZIndex = 33,
-		})
+		if HasDesc then
+			NewInstance("TextLabel", {
+				Parent = RowShell,
+				Size = UDim2.new(1, -30, 0, 16),
+				Position = UDim2.new(0, 18, 0, 23),
+				BackgroundTransparency = 1,
+				Text = Description,
+				TextColor3 = Color3.fromRGB(150, 150, 158),
+				FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Medium, Enum.FontStyle.Normal),
+				TextSize = 12,
+				TextXAlignment = Enum.TextXAlignment.Left,
+				TextWrapped = false,
+				ClipsDescendants = true,
+				ZIndex = 33,
+			})
+		end
 
 		local Button = NewInstance("TextButton", {
 			Parent = Row,
