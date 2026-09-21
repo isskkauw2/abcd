@@ -1,6 +1,48 @@
 if not game:IsLoaded() then game.Loaded:Wait() end
 local Cloneref = (cloneref or clonereference or function(Instance) return Instance end)
 
+local function Load(Url, Name)
+	local Loader = (type(loadstring) == "function" and loadstring) or (type(load) == "function" and load)
+
+	if not Loader then
+		error("load/loadstring not supported, get a better executor.")
+	end
+
+	local ReqFn = (type(request) == "function" and request) or (type(http_request) == "function" and http_request) or (type(syn) == "table" and type(syn.request) == "function" and syn.request) or (type(http) == "table" and type(http.request) == "function" and http.request)
+
+	local Body
+	while not Body do
+		Body = (function()
+			if type(game.HttpGet) == "function" then
+				return game:HttpGet(Url)
+			end
+
+			if type(HttpService.GetAsync) == "function" then
+				return HttpService:GetAsync(Url)
+			end
+
+			if ReqFn then
+				local Res = ReqFn({ Url = Url, Method = "GET" })
+				if Res and Res.Body then return Res.Body end
+			end
+
+			return nil
+		end)()
+
+		if not Body then
+			warn("[Noname] HTTP fetch failed for " .. Name .. ", retrying in 2s...")
+			task.wait(2)
+		end
+	end
+
+	local Chunk, CompileErr = Loader(Body)
+	if not Chunk then
+		return nil, "Failed to compile " .. Name .. ": " .. tostring(CompileErr)
+	end
+
+	return Chunk()
+end
+
 --[[ Services ]]--
 local Players = Cloneref(game:GetService("Players"))
 local LocalPlayer = Players.LocalPlayer
@@ -8,15 +50,17 @@ local TweenService = Cloneref(game:GetService("TweenService"))
 local UserInputService = Cloneref(game:GetService("UserInputService"))
 
 --[[ Variables ]]--
-local UIGesture = loadstring(game:HttpGet("https://raw.githubusercontent.com/isskkauww/Modules/refs/heads/main/UIGesture.luau"))()
+local UIGesture = Load("https://raw.githubusercontent.com/isskkauww/Modules/refs/heads/main/UIGesture.luau", "UIGesture")
 local ToggleBusy = false
 local IsMobile = UserInputService:GetPlatform() == Enum.Platform.Android or UserInputService:GetPlatform() == Enum.Platform.IOS
 
 local UI = {
 	CommandBar = {},
 	HUD = {},
+	CommandList = {},
 }
 UI.CmdOpen = false
+UI.CmdListOpen = false
 
 local function NewInstance(ClassName, Props)
 	local Inst = Instance.new(ClassName)
@@ -500,6 +544,372 @@ do
 			end
 		end)
 		CloseTween:Play()
+	end
+end
+
+--[[ CommandList ]]--
+do
+	local Frame = NewInstance("Frame", {
+		Parent = ScreenGui,
+		Size = UDim2.new(0, 0, 0, 0),
+		Position = UDim2.new(0.5, 0, 0.5, 0),
+		AnchorPoint = Vector2.new(0.5, 0.5),
+		BackgroundTransparency = 1,
+		BorderSizePixel = 0,
+		ClipsDescendants = true,
+		Visible = false,
+		ZIndex = 30,
+	})
+
+	local Shell = NewInstance("Frame", {
+		Parent = Frame,
+		Size = UDim2.new(1, 0, 1, 0),
+		BackgroundColor3 = Color3.fromRGB(13, 13, 15),
+		BackgroundTransparency = 0.04,
+		BorderSizePixel = 0,
+		ZIndex = 30,
+	})
+
+	NewInstance("UICorner", { Parent = Shell, CornerRadius = UDim.new(0, 14) })
+
+	NewInstance("UIGradient", {
+		Parent = Shell,
+		Rotation = 90,
+		Color = ColorSequence.new({
+			ColorSequenceKeypoint.new(0, Color3.fromRGB(20, 20, 23)),
+			ColorSequenceKeypoint.new(1, Color3.fromRGB(10, 10, 12)),
+		}),
+	})
+
+	local ListOutline = NewInstance("UIStroke", {
+		Parent = Shell,
+		ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+		Color = Color3.fromRGB(235, 235, 240),
+		Thickness = 1.25,
+		Transparency = 0.58,
+	})
+
+	NewInstance("TextLabel", {
+		Parent = Frame,
+		Size = UDim2.new(1, -70, 0, 40),
+		Position = UDim2.new(0, 20, 0, 0),
+		BackgroundTransparency = 1,
+		Text = "COMMAND LIST",
+		TextColor3 = Color3.fromRGB(246, 246, 248),
+		TextSize = 15,
+		TextXAlignment = Enum.TextXAlignment.Left,
+		TextYAlignment = Enum.TextYAlignment.Center,
+		FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Bold, Enum.FontStyle.Normal),
+		ZIndex = 32,
+	})
+
+	local CloseButton = NewInstance("TextButton", {
+		Parent = Frame,
+		Size = UDim2.new(0, 26, 0, 26),
+		Position = UDim2.new(1, -14, 0, 14),
+		AnchorPoint = Vector2.new(1, 0),
+		BackgroundColor3 = Color3.fromRGB(31, 31, 35),
+		BackgroundTransparency = 0.08,
+		BorderSizePixel = 0,
+		AutoButtonColor = false,
+		Text = "x",
+		TextColor3 = Color3.fromRGB(196, 196, 204),
+		TextSize = 14,
+		FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Bold, Enum.FontStyle.Normal),
+		ZIndex = 32,
+	})
+
+	NewInstance("UICorner", { Parent = CloseButton, CornerRadius = UDim.new(0, 7) })
+
+	CloseButton.Activated:Connect(function()
+		UI.CommandList.Close()
+	end)
+
+	local SearchBox = NewInstance("TextBox", {
+		Parent = Frame,
+		Size = UDim2.new(1, -40, 0, 34),
+		Position = UDim2.new(0, 20, 0, 44),
+		BackgroundColor3 = Color3.fromRGB(24, 24, 27),
+		BackgroundTransparency = 0.2,
+		BorderSizePixel = 0,
+		Text = "",
+		TextColor3 = Color3.fromRGB(246, 246, 248),
+		PlaceholderText = "Search commands...",
+		PlaceholderColor3 = Color3.fromRGB(130, 130, 138),
+		FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Medium, Enum.FontStyle.Normal),
+		TextSize = 14,
+		TextXAlignment = Enum.TextXAlignment.Left,
+		TextWrapped = false,
+		ClearTextOnFocus = false,
+		ClipsDescendants = true,
+		ZIndex = 32,
+	})
+
+	NewInstance("UICorner", { Parent = SearchBox, CornerRadius = UDim.new(0, 8) })
+
+	NewInstance("UIPadding", {
+		Parent = SearchBox,
+		PaddingLeft = UDim.new(0, 12),
+		PaddingRight = UDim.new(0, 12),
+	})
+
+	local SearchStroke = NewInstance("UIStroke", {
+		Parent = SearchBox,
+		ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+		Color = Color3.fromRGB(255, 255, 255),
+		Thickness = 1,
+		Transparency = 0.78,
+	})
+
+	SearchBox.Focused:Connect(function()
+		TweenService:Create(SearchStroke, TweenInfo.new(0.12, Enum.EasingStyle.Sine, Enum.EasingDirection.Out), { Transparency = 0.3 }):Play()
+	end)
+
+	SearchBox.FocusLost:Connect(function()
+		TweenService:Create(SearchStroke, TweenInfo.new(0.18, Enum.EasingStyle.Sine, Enum.EasingDirection.Out), { Transparency = 0.78 }):Play()
+	end)
+
+	local ListFrame = NewInstance("ScrollingFrame", {
+		Parent = Frame,
+		Size = UDim2.new(1, -40, 1, -122),
+		Position = UDim2.new(0, 20, 0, 88),
+		BackgroundTransparency = 1,
+		BorderSizePixel = 0,
+		ScrollBarThickness = 3,
+		ScrollBarImageColor3 = Color3.fromRGB(235, 235, 240),
+		ScrollBarImageTransparency = 0.4,
+		CanvasSize = UDim2.new(0, 0, 0, 0),
+		AutomaticCanvasSize = Enum.AutomaticSize.Y,
+		ZIndex = 31,
+	})
+
+	NewInstance("UIListLayout", {
+		Parent = ListFrame,
+		Padding = UDim.new(0, 6),
+		HorizontalAlignment = Enum.HorizontalAlignment.Center,
+		VerticalAlignment = Enum.VerticalAlignment.Top,
+		SortOrder = Enum.SortOrder.LayoutOrder,
+	})
+
+	NewInstance("UIPadding", {
+		Parent = ListFrame,
+		PaddingTop = UDim.new(0, 2),
+		PaddingBottom = UDim.new(0, 8),
+	})
+
+	local EmptyLabel = NewInstance("TextLabel", {
+		Parent = Frame,
+		Size = UDim2.new(1, -40, 0, 30),
+		Position = UDim2.new(0, 20, 0, 96),
+		BackgroundTransparency = 1,
+		Text = "No commands found",
+		TextColor3 = Color3.fromRGB(130, 130, 138),
+		FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Medium, Enum.FontStyle.Normal),
+		TextSize = 13,
+		Visible = false,
+		ZIndex = 31,
+	})
+
+	local Entries = {}
+
+	local function RefreshEmptyState()
+		local AnyVisible = false
+		for _, Entry in ipairs(Entries) do
+			if Entry.Row.Visible then
+				AnyVisible = true
+				break
+			end
+		end
+		EmptyLabel.Visible = not AnyVisible
+	end
+
+	local function FilterEntries()
+		local Query = string.lower(SearchBox.Text)
+		for _, Entry in ipairs(Entries) do
+			Entry.Row.Visible = Query == "" or string.find(Entry.SearchKey, Query, 1, true) ~= nil
+		end
+		RefreshEmptyState()
+	end
+
+	SearchBox:GetPropertyChangedSignal("Text"):Connect(FilterEntries)
+
+	function UI.CommandList.Add(Names, Description, Callback)
+		local Aliases = type(Names) == "table" and Names or { Names }
+
+		local Row = NewInstance("Frame", {
+			Parent = ListFrame,
+			Size = UDim2.new(1, 0, 0, 44),
+			BackgroundTransparency = 1,
+			BorderSizePixel = 0,
+			LayoutOrder = #Entries + 1,
+			ZIndex = 31,
+		})
+
+		local RowShell = NewInstance("Frame", {
+			Parent = Row,
+			Size = UDim2.new(1, 0, 1, 0),
+			BackgroundColor3 = Color3.fromRGB(24, 24, 27),
+			BackgroundTransparency = 0.2,
+			BorderSizePixel = 0,
+			ZIndex = 31,
+		})
+
+		NewInstance("UICorner", { Parent = RowShell, CornerRadius = UDim.new(0, 8) })
+
+		local RowStroke = NewInstance("UIStroke", {
+			Parent = RowShell,
+			ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+			Color = Color3.fromRGB(225, 225, 232),
+			Thickness = 1,
+			Transparency = 0.76,
+		})
+
+		local RowLine = NewInstance("Frame", {
+			Parent = RowShell,
+			Size = UDim2.new(0, 2, 1, -16),
+			Position = UDim2.new(0, 7, 0.5, 0),
+			AnchorPoint = Vector2.new(0, 0.5),
+			BackgroundColor3 = Color3.fromRGB(245, 245, 248),
+			BackgroundTransparency = 0.42,
+			BorderSizePixel = 0,
+			ZIndex = 32,
+		})
+
+		NewInstance("UICorner", { Parent = RowLine, CornerRadius = UDim.new(0, 3) })
+
+		NewInstance("TextLabel", {
+			Parent = RowShell,
+			Size = UDim2.new(1, -30, 0, 20),
+			Position = UDim2.new(0, 18, 0, 5),
+			BackgroundTransparency = 1,
+			Text = table.concat(Aliases, ", "),
+			TextColor3 = Color3.fromRGB(232, 232, 236),
+			FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Bold, Enum.FontStyle.Normal),
+			TextSize = 14,
+			TextXAlignment = Enum.TextXAlignment.Left,
+			TextWrapped = false,
+			ClipsDescendants = true,
+			ZIndex = 33,
+		})
+
+		NewInstance("TextLabel", {
+			Parent = RowShell,
+			Size = UDim2.new(1, -30, 0, 16),
+			Position = UDim2.new(0, 18, 0, 23),
+			BackgroundTransparency = 1,
+			Text = Description or "",
+			TextColor3 = Color3.fromRGB(150, 150, 158),
+			FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Medium, Enum.FontStyle.Normal),
+			TextSize = 12,
+			TextXAlignment = Enum.TextXAlignment.Left,
+			TextWrapped = false,
+			ClipsDescendants = true,
+			ZIndex = 33,
+		})
+
+		local Button = NewInstance("TextButton", {
+			Parent = Row,
+			Size = UDim2.new(1, 0, 1, 0),
+			BackgroundTransparency = 1,
+			BorderSizePixel = 0,
+			AutoButtonColor = false,
+			Text = "",
+			ZIndex = 34,
+		})
+
+		local function Hover(Active)
+			local Info = TweenInfo.new(0.12, Enum.EasingStyle.Sine, Enum.EasingDirection.Out)
+			TweenService:Create(RowShell, Info, {
+				BackgroundColor3 = Active and Color3.fromRGB(38, 38, 43) or Color3.fromRGB(24, 24, 27),
+				BackgroundTransparency = Active and 0.08 or 0.2,
+			}):Play()
+			TweenService:Create(RowStroke, Info, { Transparency = Active and 0.28 or 0.76 }):Play()
+			TweenService:Create(RowLine, Info, { BackgroundTransparency = Active and 0.05 or 0.42 }):Play()
+		end
+
+		UIGesture:MakeHoverable(Button, nil, Hover)
+
+		Button.Activated:Connect(function()
+			if Callback then
+				Callback()
+			end
+		end)
+
+		local Entry = {
+			Aliases = Aliases,
+			Description = Description,
+			Callback = Callback,
+			Row = Row,
+			SearchKey = string.lower(table.concat(Aliases, " ") .. " " .. (Description or "")),
+		}
+
+		Entries[#Entries + 1] = Entry
+		FilterEntries()
+
+		return Entry
+	end
+
+	local function Find(Name)
+		local Query = string.lower(Name)
+		for _, Entry in ipairs(Entries) do
+			for _, Alias in ipairs(Entry.Aliases) do
+				if string.lower(Alias) == Query then
+					return Entry
+				end
+			end
+		end
+		return nil
+	end
+
+	local Width = 460
+	local Height = 420
+
+	local function Relayout()
+		local ScreenSize = ScreenGui.AbsoluteSize
+		local Scale = math.max(UI.AutoScale.Scale, 0.01)
+		Width = math.min(460, math.max(280, math.floor((ScreenSize.X - 40) / Scale + 0.5)))
+		Height = math.min(520, math.max(260, math.floor((ScreenSize.Y - 120) / Scale + 0.5)))
+
+		if UI.CmdListOpen then
+			Frame.Size = UDim2.new(0, Width, 0, Height)
+		end
+	end
+
+	ScreenGui:GetPropertyChangedSignal("AbsoluteSize"):Connect(Relayout)
+	UI.AutoScale:GetPropertyChangedSignal("Scale"):Connect(Relayout)
+	Relayout()
+
+	local function Open()
+		UI.CmdListOpen = true
+		SearchBox.Text = ""
+		Frame.Visible = true
+		Frame.Size = UDim2.new(0, Width - 60, 0, Height - 60)
+		TweenService:Create(ListOutline, TweenInfo.new(0.108, Enum.EasingStyle.Sine, Enum.EasingDirection.Out), { Transparency = 0.18 }):Play()
+		TweenService:Create(Frame, TweenInfo.new(0.16, Enum.EasingStyle.Back, Enum.EasingDirection.Out), { Size = UDim2.new(0, Width, 0, Height) }):Play()
+		task.delay(0.1, function()
+			SearchBox:CaptureFocus()
+		end)
+	end
+
+	function UI.CommandList.Close()
+		UI.CmdListOpen = false
+		TweenService:Create(ListOutline, TweenInfo.new(0.18, Enum.EasingStyle.Sine, Enum.EasingDirection.Out), { Transparency = 0.58 }):Play()
+
+		local CloseTween = TweenService:Create(Frame, TweenInfo.new(0.32, Enum.EasingStyle.Back, Enum.EasingDirection.InOut), { Size = UDim2.new(0, 0, 0, 0) })
+		CloseTween.Completed:Connect(function()
+			if not UI.CmdListOpen then
+				Frame.Visible = false
+			end
+		end)
+		CloseTween:Play()
+	end
+
+	function UI.CommandList.Toggle()
+		if UI.CmdListOpen then
+			UI.CommandList.Close()
+		else
+			Open()
+		end
 	end
 end
 
