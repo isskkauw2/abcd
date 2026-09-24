@@ -48,6 +48,7 @@ local Players = Cloneref(game:GetService("Players"))
 local LocalPlayer = Players.LocalPlayer
 local TweenService = Cloneref(game:GetService("TweenService"))
 local UserInputService = Cloneref(game:GetService("UserInputService"))
+local ContentProvider = Cloneref(game:GetService("ContentProvider"))
 
 --[[ Variables ]]--
 local UIGesture = Load("https://raw.githubusercontent.com/isskkauww/Modules/refs/heads/main/UIGesture.luau", "UIGesture")
@@ -58,6 +59,7 @@ local UI = {
 	CommandBar = {},
 	HUD = {},
 	CommandList = {},
+	Settings = {},
 }
 UI.CmdOpen = false
 UI.CmdListOpen = false
@@ -853,18 +855,6 @@ do
 		return Entry
 	end
 
-	local function Find(Name)
-		local Query = string.lower(Name)
-		for _, Entry in ipairs(Entries) do
-			for _, Alias in ipairs(Entry.Aliases) do
-				if string.lower(Alias) == Query then
-					return Entry
-				end
-			end
-		end
-		return nil
-	end
-
 	local Width = 460
 	local Height = 420
 
@@ -1301,7 +1291,7 @@ do
 		local HasValue = Placeholder ~= nil and DefaultValue ~= nil
 		local Value = DefaultValue
 		local Tw = TweenInfo.new(0.15, Enum.EasingStyle.Quad)
-		local Frame, NameLabel, Hud
+		local Frame, Hud
 		local Built = false
 		local SetExpanded, GetExpanded
 
@@ -1330,7 +1320,7 @@ do
 				ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
 			})
 
-			NameLabel = NewInstance("TextLabel", {
+			NewInstance("TextLabel", {
 				Parent = Frame,
 				BackgroundTransparency = 1,
 				Text = Label,
@@ -1549,6 +1539,682 @@ do
 		}
 
 		return Hud
+	end
+end
+
+--[[ Settings ]]--
+do
+	local function LevenshteinDistance(A, B)
+		local ALength = #A
+		local BLength = #B
+
+		if ALength == 0 then
+			return BLength
+		end
+
+		if BLength == 0 then
+			return ALength
+		end
+
+		local PreviousRow = {}
+		for Index = 0, BLength do
+			PreviousRow[Index] = Index
+		end
+
+		for I = 1, ALength do
+			local CurrentRow = {[0] = I}
+			local ACharacter = string.byte(A, I)
+			for J = 1, BLength do
+				local Cost = (ACharacter == string.byte(B, J)) and 0 or 1
+				CurrentRow[J] = math.min(PreviousRow[J] + 1, CurrentRow[J - 1] + 1, PreviousRow[J - 1] + Cost)
+			end
+			PreviousRow = CurrentRow
+		end
+
+		return PreviousRow[BLength]
+	end
+
+	local function ApplySearch(TabItems, Query)
+		local LoweredQuery = string.lower(Query)
+		local QueryLength = #LoweredQuery
+
+		for _, Item in ipairs(TabItems) do
+			if QueryLength == 0 then
+				Item.Frame.Visible = true
+			else
+				local LoweredText = string.lower(Item.Text)
+				local BestDistance = math.huge
+
+				for StartIndex = 1, math.max(#LoweredText - QueryLength, 0) + 1 do
+					local Distance = LevenshteinDistance(LoweredQuery, string.sub(LoweredText, StartIndex, StartIndex + QueryLength - 1))
+					if Distance < BestDistance then
+						BestDistance = Distance
+					end
+				end
+
+				Item.Frame.Visible = BestDistance <= math.max(math.floor(QueryLength / 3), 1)
+			end
+		end
+	end
+
+	local Tab = {}
+	Tab.__index = Tab
+
+	function Tab:AddButton(Config)
+		local HasDesc = Config.Desc and Config.Desc ~= ""
+
+		local ButtonFrame = NewInstance("TextButton", {AnchorPoint = Vector2.new(0.5, 0.5), Size = UDim2.new(1, 0, 0, HasDesc and 52 or 40), BackgroundColor3 = Color3.fromRGB(32, 32, 32), BorderSizePixel = 0, AutoButtonColor = true, Text = HasDesc and "" or Config.Text or "", TextColor3 = Color3.fromRGB(255, 255, 255), Font = Enum.Font.Gotham, TextSize = 14, Parent = self.Content})
+		NewInstance("UICorner", {CornerRadius = UDim.new(0, 6), Parent = ButtonFrame})
+		local ButtonStroke = NewInstance("UIStroke", {Color = Color3.fromRGB(150, 150, 150), Thickness = 1, ApplyStrokeMode = Enum.ApplyStrokeMode.Border, Parent = ButtonFrame})
+		table.insert(self.Items, {Frame = ButtonFrame, Text = Config.Text or ""})
+
+		if HasDesc then
+			NewInstance("TextLabel", {Size = UDim2.new(1, 0, 0, 18), Position = UDim2.new(0, 0, 0, 10), BackgroundTransparency = 1, Text = Config.Text or "", TextColor3 = Color3.fromRGB(255, 255, 255), Font = Enum.Font.Gotham, TextSize = 14, Parent = ButtonFrame})
+			NewInstance("TextLabel", {Size = UDim2.new(1, 0, 0, 14), Position = UDim2.new(0, 0, 0, 28), BackgroundTransparency = 1, Text = Config.Desc, TextColor3 = Color3.fromRGB(180, 180, 180), TextTransparency = 0.3, Font = Enum.Font.Gotham, TextSize = 12, Parent = ButtonFrame})
+		end
+
+		UIGesture:MakeHoverable(ButtonFrame, nil, function(Hovering)
+			if Hovering then
+				TweenService:Create(ButtonStroke, TweenInfo.new(0.15), {Color = Color3.fromRGB(173, 216, 255)}):Play()
+			else
+				TweenService:Create(ButtonStroke, TweenInfo.new(0.15), {Color = Color3.fromRGB(150, 150, 150)}):Play()
+			end
+		end)
+
+		ButtonFrame.Activated:Connect(function()
+			(Config.Callback or function() end)()
+		end)
+	end
+
+	function Tab:AddToggle(Config)
+		local HasDesc = Config.Desc and Config.Desc ~= ""
+
+		local ToggleFrame = NewInstance("ImageLabel", {AnchorPoint = Vector2.new(0.5, 0.5), Size = UDim2.new(1, 0, 0, HasDesc and 52 or 40), BackgroundColor3 = Color3.fromRGB(32, 32, 32), BorderSizePixel = 0, Parent = self.Content})
+		NewInstance("UICorner", {CornerRadius = UDim.new(0, 6), Parent = ToggleFrame})
+		NewInstance("UIStroke", {Color = Color3.fromRGB(150, 150, 150), Thickness = 1, ApplyStrokeMode = Enum.ApplyStrokeMode.Border, Parent = ToggleFrame})
+		table.insert(self.Items, {Frame = ToggleFrame, Text = Config.Text or ""})
+
+		NewInstance("TextLabel", {Size = HasDesc and UDim2.new(1, -60, 0, 18) or UDim2.new(1, -60, 1, 0), Position = HasDesc and UDim2.new(0, 12, 0, 10) or UDim2.new(0, 12, 0, 0), BackgroundTransparency = 1, Text = Config.Text or "", TextColor3 = Color3.fromRGB(255, 255, 255), Font = Enum.Font.Gotham, TextSize = 14, TextXAlignment = Enum.TextXAlignment.Left, Parent = ToggleFrame})
+
+		if HasDesc then
+			NewInstance("TextLabel", {Size = UDim2.new(1, -60, 0, 14), Position = UDim2.new(0, 12, 0, 28), BackgroundTransparency = 1, Text = Config.Desc, TextColor3 = Color3.fromRGB(180, 180, 180), TextTransparency = 0.3, Font = Enum.Font.Gotham, TextSize = 12, TextXAlignment = Enum.TextXAlignment.Left, Parent = ToggleFrame})
+		end
+
+		local Track = NewInstance("TextButton", {AnchorPoint = Vector2.new(1, 0.5), Size = UDim2.new(0, 40, 0, 22), Position = UDim2.new(1, -12, 0.5, 0), BackgroundColor3 = Color3.fromRGB(0, 0, 0), BorderSizePixel = 0, AutoButtonColor = false, Text = "", Parent = ToggleFrame})
+		NewInstance("UICorner", {CornerRadius = UDim.new(1, 0), Parent = Track})
+		local TrackStroke = NewInstance("UIStroke", {Thickness = 1, ApplyStrokeMode = Enum.ApplyStrokeMode.Border, Parent = Track})
+
+		local Knob = NewInstance("Frame", {AnchorPoint = Vector2.new(0, 0.5), Size = UDim2.new(0, 18, 0, 18), Position = UDim2.new(0, 2, 0.5, 0), BorderSizePixel = 0, Parent = Track})
+		NewInstance("UICorner", {CornerRadius = UDim.new(1, 0), Parent = Knob})
+
+		local Toggled = Config.Default or false
+
+		local function Refresh(Animate)
+			local TrackStrokeColor = Toggled and Color3.fromRGB(60, 200, 100) or Color3.fromRGB(100, 100, 100)
+			local KnobColor = Toggled and Color3.fromRGB(60, 200, 100) or Color3.fromRGB(150, 150, 150)
+			local KnobPosition = Toggled and UDim2.new(1, -20, 0.5, 0) or UDim2.new(0, 2, 0.5, 0)
+
+			if Animate then
+				TweenService:Create(TrackStroke, TweenInfo.new(0.15), {Color = TrackStrokeColor}):Play()
+				TweenService:Create(Knob, TweenInfo.new(0.15), {BackgroundColor3 = KnobColor, Position = KnobPosition}):Play()
+			else
+				TrackStroke.Color = TrackStrokeColor
+				Knob.BackgroundColor3 = KnobColor
+				Knob.Position = KnobPosition
+			end
+
+			if Toggled then
+				ToggleFrame.Image = "rbxassetid://106803105297904"
+				ToggleFrame.BackgroundTransparency = 1
+			else
+				ToggleFrame.Image = ""
+				ToggleFrame.BackgroundTransparency = 0
+			end
+		end
+
+		Refresh(false)
+
+		Track.Activated:Connect(function()
+			Toggled = not Toggled
+			Refresh(true);
+			(Config.Callback or function() end)(Toggled)
+		end)
+	end
+
+	function Tab:AddSlider(Config)
+		local Min = Config.Min or 0
+		local Max = Config.Max or 100
+		local Step = Config.Step or 1
+		local HasDesc = Config.Desc and Config.Desc ~= ""
+
+		local SliderFrame = NewInstance("Frame", {AnchorPoint = Vector2.new(0.5, 0.5), Size = UDim2.new(1, 0, 0, HasDesc and 72 or 58), BackgroundColor3 = Color3.fromRGB(32, 32, 32), BorderSizePixel = 0, Parent = self.Content})
+		NewInstance("UICorner", {CornerRadius = UDim.new(0, 6), Parent = SliderFrame})
+		NewInstance("UIStroke", {Color = Color3.fromRGB(150, 150, 150), Thickness = 1, ApplyStrokeMode = Enum.ApplyStrokeMode.Border, Parent = SliderFrame})
+		table.insert(self.Items, {Frame = SliderFrame, Text = Config.Text or ""})
+
+		NewInstance("TextLabel", {Size = UDim2.new(1, -24, 0, 18), Position = UDim2.new(0, 12, 0, HasDesc and 4 or 6), BackgroundTransparency = 1, Text = Config.Text or "", TextColor3 = Color3.fromRGB(255, 255, 255), Font = Enum.Font.Gotham, TextSize = 14, TextXAlignment = Enum.TextXAlignment.Left, Parent = SliderFrame})
+
+		if HasDesc then
+			NewInstance("TextLabel", {Size = UDim2.new(1, -24, 0, 14), Position = UDim2.new(0, 12, 0, 22), BackgroundTransparency = 1, Text = Config.Desc, TextColor3 = Color3.fromRGB(180, 180, 180), TextTransparency = 0.3, Font = Enum.Font.Gotham, TextSize = 12, TextXAlignment = Enum.TextXAlignment.Left, Parent = SliderFrame})
+		end
+
+		local Track = NewInstance("CanvasGroup", {Size = UDim2.new(1, -90, 0, 22), Position = UDim2.new(0, 12, 0, HasDesc and 44 or 30), BackgroundColor3 = Color3.fromRGB(0, 0, 0), BorderSizePixel = 0, Parent = SliderFrame})
+		NewInstance("UICorner", {CornerRadius = UDim.new(1, 0), Parent = Track})
+		local TrackStroke = NewInstance("UIStroke", {Color = Color3.fromRGB(150, 150, 150), Thickness = 1, ApplyStrokeMode = Enum.ApplyStrokeMode.Border, Parent = Track})
+
+		local Fill = NewInstance("Frame", {Size = UDim2.new(0, 0, 1, 0), BackgroundColor3 = Color3.fromRGB(90, 150, 255), BorderSizePixel = 0, ZIndex = 2, Parent = Track})
+
+		local ValueLabel = NewInstance("TextLabel", {Size = UDim2.new(1, 0, 1, 0), BackgroundTransparency = 1, Text = "", TextColor3 = Color3.fromRGB(255, 255, 255), Font = Enum.Font.GothamBold, TextSize = 13, ZIndex = 4, Parent = Track})
+
+		local InputBox = NewInstance("TextBox", {AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -12, 0, HasDesc and 44 or 30), Size = UDim2.new(0, 58, 0, 22), BackgroundColor3 = Color3.fromRGB(0, 0, 0), BorderSizePixel = 0, Text = "", TextColor3 = Color3.fromRGB(255, 255, 255), Font = Enum.Font.Gotham, TextSize = 13, ClearTextOnFocus = false, Parent = SliderFrame})
+		NewInstance("UICorner", {CornerRadius = UDim.new(0, 6), Parent = InputBox})
+		local InputStroke = NewInstance("UIStroke", {Color = Color3.fromRGB(150, 150, 150), Thickness = 1, ApplyStrokeMode = Enum.ApplyStrokeMode.Border, Parent = InputBox})
+
+		local Value
+
+		local function SetValue(NewValue, FireCallback)
+			Value = tonumber(string.format("%.10g", math.clamp(Min + math.floor((NewValue - Min) / Step + 0.5) * Step, Min, Max)))
+			local Alpha = (Value - Min) / (Max - Min)
+			Fill.Size = UDim2.new(Alpha, 0, 1, 0)
+			ValueLabel.Text = tostring(Value)
+			if not InputBox:IsFocused() then
+				InputBox.Text = tostring(Value)
+			end
+			if FireCallback then
+				(Config.Callback or function() end)(Value)
+			end
+		end
+
+		local IsDragging = false
+
+		UIGesture:MakePannable(Track, nil, function(Offset, _, Dragging)
+			SetValue(Min + ((Offset.X / Track.AbsoluteSize.X) * (Max - Min)), true)
+			if Dragging ~= IsDragging then
+				IsDragging = Dragging
+				TweenService:Create(TrackStroke, TweenInfo.new(0.15), {Color = Dragging and Color3.fromRGB(173, 216, 255) or Color3.fromRGB(150, 150, 150)}):Play()
+			end
+		end, {LockAxis = "X", Radius = {0, Track.AbsoluteSize.X}, MoveMain = false, ClickToJump = true})
+
+		InputBox.Focused:Connect(function()
+			TweenService:Create(InputStroke, TweenInfo.new(1.2), {Color = Color3.fromRGB(173, 216, 255)}):Play()
+		end)
+
+		InputBox.FocusLost:Connect(function()
+			InputBox.Text = tostring(Value)
+			TweenService:Create(InputStroke, TweenInfo.new(1.2), {Color = Color3.fromRGB(150, 150, 150)}):Play()
+		end)
+
+		InputBox:GetPropertyChangedSignal("Text"):Connect(function()
+			local NewValue = tonumber(InputBox.Text)
+			local Steps = NewValue and (NewValue - Min) / Step
+			if Steps and math.abs(Steps - math.floor(Steps + 0.5)) < 0.000001 then
+				SetValue(NewValue, true)
+			elseif InputBox.Text == "" then
+				SetValue(0, true)
+			else
+				InputBox.Text = tostring(Value)
+			end
+		end)
+
+		SetValue(Config.Default or Min, false)
+	end
+
+	function Tab:AddInput(Config)
+		local HasDesc = Config.Desc and Config.Desc ~= ""
+
+		local InputFrame = NewInstance("Frame", {AnchorPoint = Vector2.new(0.5, 0.5), Size = UDim2.new(1, 0, 0, HasDesc and 72 or 58), BackgroundColor3 = Color3.fromRGB(32, 32, 32), BorderSizePixel = 0, Parent = self.Content})
+		NewInstance("UICorner", {CornerRadius = UDim.new(0, 6), Parent = InputFrame})
+		NewInstance("UIStroke", {Color = Color3.fromRGB(150, 150, 150), Thickness = 1, ApplyStrokeMode = Enum.ApplyStrokeMode.Border, Parent = InputFrame})
+		table.insert(self.Items, {Frame = InputFrame, Text = Config.Text or ""})
+
+		NewInstance("TextLabel", {Size = UDim2.new(1, -24, 0, 18), Position = UDim2.new(0, 12, 0, HasDesc and 4 or 6), BackgroundTransparency = 1, Text = Config.Text or "", TextColor3 = Color3.fromRGB(255, 255, 255), Font = Enum.Font.Gotham, TextSize = 14, TextXAlignment = Enum.TextXAlignment.Left, Parent = InputFrame})
+
+		if HasDesc then
+			NewInstance("TextLabel", {Size = UDim2.new(1, -24, 0, 14), Position = UDim2.new(0, 12, 0, 22), BackgroundTransparency = 1, Text = Config.Desc, TextColor3 = Color3.fromRGB(180, 180, 180), TextTransparency = 0.3, Font = Enum.Font.Gotham, TextSize = 12, TextXAlignment = Enum.TextXAlignment.Left, Parent = InputFrame})
+		end
+
+		local InputBox = NewInstance("TextBox", {Size = UDim2.new(1, -24, 0, 22), Position = UDim2.new(0, 12, 0, HasDesc and 44 or 30), BackgroundColor3 = Color3.fromRGB(0, 0, 0), BorderSizePixel = 0, Text = Config.Default or "", PlaceholderText = Config.Placeholder or "", PlaceholderColor3 = Color3.fromRGB(150, 150, 150), TextColor3 = Color3.fromRGB(255, 255, 255), Font = Enum.Font.Gotham, TextSize = 13, TextXAlignment = Enum.TextXAlignment.Left, ClearTextOnFocus = Config.ClearTextOnFocus ~= false, MultiLine = Config.Multiline or false, TextWrapped = Config.Multiline or false, Parent = InputFrame})
+		NewInstance("UICorner", {CornerRadius = UDim.new(0, 6), Parent = InputBox})
+		local InputStroke = NewInstance("UIStroke", {Color = Color3.fromRGB(150, 150, 150), Thickness = 1, ApplyStrokeMode = Enum.ApplyStrokeMode.Border, Parent = InputBox})
+		NewInstance("UIPadding", {PaddingLeft = UDim.new(0, 10), PaddingRight = UDim.new(0, 10), Parent = InputBox})
+
+		InputBox:GetPropertyChangedSignal("Text"):Connect(function()
+			if Config.Numeric then
+				local Filtered = string.gsub(InputBox.Text, "[^%d%.%-]", "")
+				if Filtered ~= InputBox.Text then
+					InputBox.Text = Filtered
+					return
+				end
+			end
+			if not Config.Finished then
+				(Config.Callback or function() end)(InputBox.Text)
+			end
+		end)
+
+		InputBox.Focused:Connect(function()
+			TweenService:Create(InputStroke, TweenInfo.new(1.2), {Color = Color3.fromRGB(173, 216, 255)}):Play()
+		end)
+
+		InputBox.FocusLost:Connect(function(EnterPressed)
+			TweenService:Create(InputStroke, TweenInfo.new(1.2), {Color = Color3.fromRGB(150, 150, 150)}):Play()
+			if Config.Finished and EnterPressed then
+				(Config.Callback or function() end)(InputBox.Text)
+			end
+		end)
+	end
+
+	function Tab:AddDropdown(Config)
+		local HasDesc = Config.Desc and Config.Desc ~= ""
+		local OptionButtons = {}
+		local Expanded = false
+
+		local DropdownFrame = NewInstance("Frame", {AnchorPoint = Vector2.new(0.5, 0.5), Size = UDim2.new(1, 0, 0, HasDesc and 52 or 40), BackgroundColor3 = Color3.fromRGB(32, 32, 32), BorderSizePixel = 0, ClipsDescendants = true, Parent = self.Content})
+		NewInstance("UICorner", {CornerRadius = UDim.new(0, 6), Parent = DropdownFrame})
+		NewInstance("UIStroke", {Color = Color3.fromRGB(150, 150, 150), Thickness = 1, ApplyStrokeMode = Enum.ApplyStrokeMode.Border, Parent = DropdownFrame})
+		table.insert(self.Items, {Frame = DropdownFrame, Text = Config.Text or ""})
+
+		NewInstance("TextLabel", {Size = HasDesc and UDim2.new(1, -60, 0, 18) or UDim2.new(1, -60, 0, 40), Position = HasDesc and UDim2.new(0, 12, 0, 10) or UDim2.new(0, 12, 0, 0), BackgroundTransparency = 1, Text = Config.Text or "", TextColor3 = Color3.fromRGB(255, 255, 255), Font = Enum.Font.Gotham, TextSize = 14, TextXAlignment = Enum.TextXAlignment.Left, Parent = DropdownFrame})
+
+		if HasDesc then
+			NewInstance("TextLabel", {Size = UDim2.new(1, -60, 0, 14), Position = UDim2.new(0, 12, 0, 28), BackgroundTransparency = 1, Text = Config.Desc, TextColor3 = Color3.fromRGB(180, 180, 180), TextTransparency = 0.3, Font = Enum.Font.Gotham, TextSize = 12, TextXAlignment = Enum.TextXAlignment.Left, Parent = DropdownFrame})
+		end
+
+		local ToggleButton = NewInstance("TextButton", {AnchorPoint = Vector2.new(1, 0), Size = UDim2.new(0, 24, 0, 24), Position = UDim2.new(1, -12, 0, HasDesc and 14 or 8), BackgroundColor3 = Color3.fromRGB(0, 0, 0), BorderSizePixel = 0, AutoButtonColor = false, Text = "+", TextColor3 = Color3.fromRGB(255, 255, 255), Font = Enum.Font.GothamBold, TextSize = 16, Parent = DropdownFrame})
+		NewInstance("UICorner", {CornerRadius = UDim.new(0, 6), Parent = ToggleButton})
+		local ToggleStroke = NewInstance("UIStroke", {Color = Color3.fromRGB(150, 150, 150), Thickness = 1, ApplyStrokeMode = Enum.ApplyStrokeMode.Border, Parent = ToggleButton})
+
+		local OptionsList = NewInstance("ScrollingFrame", {Position = UDim2.new(0, 12, 0, HasDesc and 52 or 40), Size = UDim2.new(1, -24, 0, math.clamp(#Config.Options * 32 - 2, 0, 150)), BackgroundTransparency = 1, BorderSizePixel = 0, ScrollBarThickness = 3, CanvasSize = UDim2.new(0, 0, 0, 0), AutomaticCanvasSize = Enum.AutomaticSize.Y, ScrollingDirection = Enum.ScrollingDirection.Y, Parent = DropdownFrame})
+		NewInstance("UIListLayout", {SortOrder = Enum.SortOrder.LayoutOrder, Padding = UDim.new(0, 4), Parent = OptionsList})
+		NewInstance("UIPadding", {PaddingTop = UDim.new(0, 1), PaddingBottom = UDim.new(0, 1), PaddingLeft = UDim.new(0, 4), PaddingRight = UDim.new(0, 4), Parent = OptionsList})
+
+		for Index, Option in ipairs(Config.Options) do
+			local IsSelected = (Config.Multi and Config.Default and table.find(Config.Default, Option) ~= nil) or (not Config.Multi and Config.Default == Option)
+
+			local OptionButton = NewInstance("TextButton", {LayoutOrder = Index, Size = UDim2.new(1, 0, 0, 28), BackgroundColor3 = Color3.fromRGB(0, 0, 0), BorderSizePixel = 0, AutoButtonColor = false, Text = tostring(Option), TextColor3 = Color3.fromRGB(255, 255, 255), Font = Enum.Font.Gotham, TextSize = 13, TextXAlignment = Enum.TextXAlignment.Left, Parent = OptionsList})
+			NewInstance("UICorner", {CornerRadius = UDim.new(0, 6), Parent = OptionButton})
+			local OptionStroke = NewInstance("UIStroke", {Color = IsSelected and Color3.fromRGB(173, 216, 255) or Color3.fromRGB(150, 150, 150), Thickness = 1, ApplyStrokeMode = Enum.ApplyStrokeMode.Border, Parent = OptionButton})
+			NewInstance("UIPadding", {PaddingLeft = UDim.new(0, 10), PaddingRight = UDim.new(0, 10), Parent = OptionButton})
+			table.insert(OptionButtons, {Stroke = OptionStroke, Value = Option, Selected = IsSelected})
+
+			OptionButton.Activated:Connect(function()
+				if Config.Multi then
+					local Data = OptionButtons[Index]
+					Data.Selected = not Data.Selected
+					TweenService:Create(Data.Stroke, TweenInfo.new(0.15), {Color = Data.Selected and Color3.fromRGB(173, 216, 255) or Color3.fromRGB(150, 150, 150)}):Play()
+
+					local Result = {}
+					for _, ResultData in ipairs(OptionButtons) do
+						if ResultData.Selected then
+							table.insert(Result, ResultData.Value)
+						end
+					end
+					(Config.Callback or function() end)(Result)
+				else
+					for _, Data in ipairs(OptionButtons) do
+						TweenService:Create(Data.Stroke, TweenInfo.new(0.15), {Color = Data.Value == Option and Color3.fromRGB(173, 216, 255) or Color3.fromRGB(150, 150, 150)}):Play()
+					end
+					(Config.Callback or function() end)(Option)
+				end
+			end)
+		end
+
+		UIGesture:MakeHoverable(ToggleButton, nil, function(Hovering)
+			TweenService:Create(ToggleStroke, TweenInfo.new(0.15), {Color = Hovering and Color3.fromRGB(173, 216, 255) or Color3.fromRGB(150, 150, 150)}):Play()
+		end)
+
+		ToggleButton.Activated:Connect(function()
+			Expanded = not Expanded
+			ToggleButton.Text = Expanded and "-" or "+"
+			TweenService:Create(DropdownFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Size = UDim2.new(1, 0, 0, (HasDesc and 52 or 40) + (Expanded and math.clamp(#Config.Options * 32 - 2, 0, 150) + 12 or 0))}):Play()
+		end)
+	end
+
+	function Tab:AddKeyPicker(Config)
+		local HasDesc = Config.Desc and Config.Desc ~= ""
+
+		local KeyPickerFrame = NewInstance("Frame", {AnchorPoint = Vector2.new(0.5, 0.5), Size = UDim2.new(1, 0, 0, HasDesc and 52 or 40), BackgroundColor3 = Color3.fromRGB(32, 32, 32), BorderSizePixel = 0, Parent = self.Content})
+		NewInstance("UICorner", {CornerRadius = UDim.new(0, 6), Parent = KeyPickerFrame})
+		NewInstance("UIStroke", {Color = Color3.fromRGB(150, 150, 150), Thickness = 1, ApplyStrokeMode = Enum.ApplyStrokeMode.Border, Parent = KeyPickerFrame})
+		table.insert(self.Items, {Frame = KeyPickerFrame, Text = Config.Text or ""})
+
+		NewInstance("TextLabel", {Size = HasDesc and UDim2.new(1, -110, 0, 18) or UDim2.new(1, -110, 1, 0), Position = HasDesc and UDim2.new(0, 12, 0, 10) or UDim2.new(0, 12, 0, 0), BackgroundTransparency = 1, Text = Config.Text or "", TextColor3 = Color3.fromRGB(255, 255, 255), Font = Enum.Font.Gotham, TextSize = 14, TextXAlignment = Enum.TextXAlignment.Left, Parent = KeyPickerFrame})
+
+		if HasDesc then
+			NewInstance("TextLabel", {Size = UDim2.new(1, -110, 0, 14), Position = UDim2.new(0, 12, 0, 28), BackgroundTransparency = 1, Text = Config.Desc, TextColor3 = Color3.fromRGB(180, 180, 180), TextTransparency = 0.3, Font = Enum.Font.Gotham, TextSize = 12, TextXAlignment = Enum.TextXAlignment.Left, Parent = KeyPickerFrame})
+		end
+
+		local KeyButton = NewInstance("TextButton", {AnchorPoint = Vector2.new(1, 0.5), Size = UDim2.new(0, 90, 0, 24), Position = UDim2.new(1, -12, 0.5, 0), BackgroundColor3 = Color3.fromRGB(0, 0, 0), BorderSizePixel = 0, AutoButtonColor = false, Text = Config.Default and Config.Default.Name or "None", TextColor3 = Color3.fromRGB(255, 255, 255), Font = Enum.Font.Gotham, TextSize = 13, Parent = KeyPickerFrame})
+		NewInstance("UICorner", {CornerRadius = UDim.new(0, 6), Parent = KeyButton})
+		local KeyStroke = NewInstance("UIStroke", {Color = Color3.fromRGB(150, 150, 150), Thickness = 1, ApplyStrokeMode = Enum.ApplyStrokeMode.Border, Parent = KeyButton})
+
+		local Mode = Config.Mode or "Toggle"
+		local Key = Config.Default
+		local Listening = false
+		local Toggled = false
+		local Locked = false
+
+		UIGesture:MakeHoverable(KeyButton, nil, function(Hovering)
+			if not Listening then
+				TweenService:Create(KeyStroke, TweenInfo.new(0.15), {Color = Hovering and Color3.fromRGB(173, 216, 255) or Color3.fromRGB(150, 150, 150)}):Play()
+			end
+		end)
+
+		KeyButton.Activated:Connect(function()
+			Listening = true
+			KeyButton.Text = "..."
+			TweenService:Create(KeyStroke, TweenInfo.new(0.15), {Color = Color3.fromRGB(255, 200, 80)}):Play()
+		end)
+
+		UserInputService.InputBegan:Connect(function(Input, GameProcessed)
+			if Listening then
+				if Input.UserInputType == Enum.UserInputType.Keyboard then
+					Key = Input.KeyCode
+					KeyButton.Text = Key.Name
+					Listening = false
+					TweenService:Create(KeyStroke, TweenInfo.new(0.15), {Color = Color3.fromRGB(150, 150, 150)}):Play()
+				end
+				return
+			end
+
+			if GameProcessed or not Key or Input.KeyCode ~= Key then
+				return
+			end
+
+			if Mode == "Toggle" then
+				Toggled = not Toggled;
+				(Config.Callback or function() end)(Toggled)
+			elseif Mode == "Hold" then
+				(Config.Callback or function() end)(true)
+			elseif Mode == "Press" then
+				if Locked then
+					return
+				end
+				if Config.WaitForCallback then
+					Locked = true
+					(Config.Callback or function() end)(true)
+					Locked = false
+				else
+					(Config.Callback or function() end)(true)
+				end
+			end
+		end)
+
+		UserInputService.InputEnded:Connect(function(Input, GameProcessed)
+			if Listening or GameProcessed or not Key or Input.KeyCode ~= Key then
+				return
+			end
+
+			if Mode == "Hold" then
+				(Config.Callback or function() end)(false)
+			end
+		end)
+
+		if Mode == "Always" then
+			(Config.Callback or function() end)(true)
+		end
+	end
+
+	function Tab:AddLabel(Config)
+		local TextXAlignment = (Config.Alignment == "Right" and Enum.TextXAlignment.Right) or (Config.Alignment == "Center" and Enum.TextXAlignment.Center) or Enum.TextXAlignment.Left
+
+		local LabelFrame = NewInstance("TextLabel", {AnchorPoint = Vector2.new(0.5, 0.5), Size = UDim2.new(1, 0, 0, 0), AutomaticSize = Enum.AutomaticSize.Y, BackgroundTransparency = 1, Text = Config.Text or "", TextWrapped = true, RichText = Config.RichText or false, TextColor3 = Config.Color or Color3.fromRGB(255, 255, 255), Font = Config.Font or Enum.Font.Gotham, TextSize = Config.TextSize or 14, TextXAlignment = TextXAlignment, Parent = self.Content})
+		table.insert(self.Items, {Frame = LabelFrame, Text = Config.Text or ""})
+	end
+
+	function Tab:AddColorPicker(Config)
+		local HasDesc = Config.Desc and Config.Desc ~= ""
+
+		local ColorPickerFrame = NewInstance("Frame", {AnchorPoint = Vector2.new(0.5, 0.5), Size = UDim2.new(1, 0, 0, HasDesc and 52 or 40), BackgroundColor3 = Color3.fromRGB(32, 32, 32), BorderSizePixel = 0, Parent = self.Content})
+		NewInstance("UICorner", {CornerRadius = UDim.new(0, 6), Parent = ColorPickerFrame})
+		NewInstance("UIStroke", {Color = Color3.fromRGB(150, 150, 150), Thickness = 1, ApplyStrokeMode = Enum.ApplyStrokeMode.Border, Parent = ColorPickerFrame})
+		table.insert(self.Items, {Frame = ColorPickerFrame, Text = Config.Text or ""})
+
+		NewInstance("TextLabel", {Size = HasDesc and UDim2.new(1, -60, 0, 18) or UDim2.new(1, -60, 1, 0), Position = HasDesc and UDim2.new(0, 12, 0, 10) or UDim2.new(0, 12, 0, 0), BackgroundTransparency = 1, Text = Config.Text or "", TextColor3 = Color3.fromRGB(255, 255, 255), Font = Enum.Font.Gotham, TextSize = 14, TextXAlignment = Enum.TextXAlignment.Left, Parent = ColorPickerFrame})
+
+		if HasDesc then
+			NewInstance("TextLabel", {Size = UDim2.new(1, -60, 0, 14), Position = UDim2.new(0, 12, 0, 28), BackgroundTransparency = 1, Text = Config.Desc, TextColor3 = Color3.fromRGB(180, 180, 180), TextTransparency = 0.3, Font = Enum.Font.Gotham, TextSize = 12, TextXAlignment = Enum.TextXAlignment.Left, Parent = ColorPickerFrame})
+		end
+
+		local Swatch = NewInstance("TextButton", {AnchorPoint = Vector2.new(1, 0.5), Size = UDim2.new(0, 34, 0, 24), Position = UDim2.new(1, -12, 0.5, 0), BackgroundColor3 = Config.DefaultColor or Color3.fromRGB(255, 255, 255), BorderSizePixel = 0, AutoButtonColor = false, Text = "", Parent = ColorPickerFrame})
+		NewInstance("UICorner", {CornerRadius = UDim.new(0, 6), Parent = Swatch})
+		local SwatchStroke = NewInstance("UIStroke", {Color = Color3.fromRGB(150, 150, 150), Thickness = 1, ApplyStrokeMode = Enum.ApplyStrokeMode.Border, Parent = Swatch})
+
+		UIGesture:MakeHoverable(Swatch, nil, function(Hovering)
+			TweenService:Create(SwatchStroke, TweenInfo.new(0.15), {Color = Hovering and Color3.fromRGB(173, 216, 255) or Color3.fromRGB(150, 150, 150)}):Play()
+		end)
+
+		local Hue, Sat, Vib = (Config.DefaultColor or Color3.fromRGB(255, 255, 255)):ToHSV()
+
+		local Panel = NewInstance("Frame", {AnchorPoint = Vector2.new(0.5, 0.5), Size = UDim2.new(0, 190, 0, 258), Position = UDim2.new(0.5, 0, 0.5, 0), BackgroundColor3 = Color3.fromRGB(24, 24, 24), BorderSizePixel = 0, Visible = false, ZIndex = 10, Parent = ScreenGui})
+		NewInstance("UICorner", {CornerRadius = UDim.new(0, 6), Parent = Panel})
+		NewInstance("UIStroke", {Color = Color3.fromRGB(150, 150, 150), Thickness = 1, ApplyStrokeMode = Enum.ApplyStrokeMode.Border, Parent = Panel})
+		NewInstance("UIPadding", {PaddingTop = UDim.new(0, 10), PaddingLeft = UDim.new(0, 10), PaddingRight = UDim.new(0, 10), PaddingBottom = UDim.new(0, 10), Parent = Panel})
+
+		local TitleBar = NewInstance("Frame", {Size = UDim2.new(1, 0, 0, 24), BackgroundTransparency = 1, Parent = Panel})
+		NewInstance("TextLabel", {Size = UDim2.new(1, -24, 1, 0), BackgroundTransparency = 1, Text = "Color Editor", TextColor3 = Color3.fromRGB(255, 255, 255), Font = Enum.Font.GothamBold, TextSize = 14, TextXAlignment = Enum.TextXAlignment.Left, Parent = TitleBar})
+		local CloseButton = NewInstance("TextButton", {AnchorPoint = Vector2.new(1, 0.5), Position = UDim2.new(1, 0, 0.5, 0), Size = UDim2.new(0, 20, 0, 20), BackgroundTransparency = 1, AutoButtonColor = false, Text = "X", TextColor3 = Color3.fromRGB(255, 255, 255), Font = Enum.Font.Nunito, TextSize = 18, Parent = TitleBar})
+
+		local SatVal = NewInstance("Frame", {Position = UDim2.new(0, 0, 0, 32), Size = UDim2.new(1, 0, 0, 150), BackgroundColor3 = Color3.fromHSV(Hue, 1, 1), BorderSizePixel = 0, ClipsDescendants = true, Parent = Panel})
+		NewInstance("UICorner", {CornerRadius = UDim.new(0, 6), Parent = SatVal})
+
+		local SatOverlay = NewInstance("Frame", {Size = UDim2.new(1, 0, 1, 0), BackgroundColor3 = Color3.fromRGB(255, 255, 255), BorderSizePixel = 0, Parent = SatVal})
+		NewInstance("UICorner", {CornerRadius = UDim.new(0, 6), Parent = SatOverlay})
+		NewInstance("UIGradient", {Color = ColorSequence.new(Color3.fromRGB(255, 255, 255), Color3.fromRGB(255, 255, 255)), Transparency = NumberSequence.new(0, 1), Parent = SatOverlay})
+
+		local VibOverlay = NewInstance("Frame", {Size = UDim2.new(1, 0, 1, 0), BackgroundColor3 = Color3.fromRGB(0, 0, 0), BorderSizePixel = 0, Parent = SatVal})
+		NewInstance("UICorner", {CornerRadius = UDim.new(0, 6), Parent = VibOverlay})
+		NewInstance("UIGradient", {Color = ColorSequence.new(Color3.fromRGB(0, 0, 0), Color3.fromRGB(0, 0, 0)), Transparency = NumberSequence.new(1, 0), Rotation = 90, Parent = VibOverlay})
+
+		local SatValCursor = NewInstance("Frame", {AnchorPoint = Vector2.new(0.5, 0.5), Size = UDim2.new(0, 10, 0, 10), BackgroundColor3 = Color3.fromRGB(255, 255, 255), BorderSizePixel = 0, ZIndex = 3, Parent = SatVal})
+		NewInstance("UICorner", {CornerRadius = UDim.new(1, 0), Parent = SatValCursor})
+		NewInstance("UIStroke", {Color = Color3.fromRGB(0, 0, 0), Thickness = 1.5, ApplyStrokeMode = Enum.ApplyStrokeMode.Border, Parent = SatValCursor})
+
+		local HueBar = NewInstance("Frame", {Size = UDim2.new(1, 0, 0, 16), Position = UDim2.new(0, 0, 0, 192), BackgroundColor3 = Color3.fromRGB(255, 255, 255), BorderSizePixel = 0, Parent = Panel})
+		NewInstance("UICorner", {CornerRadius = UDim.new(1, 0), Parent = HueBar})
+		NewInstance("UIGradient", {Color = ColorSequence.new({ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 0, 0)), ColorSequenceKeypoint.new(0.167, Color3.fromRGB(255, 255, 0)), ColorSequenceKeypoint.new(0.333, Color3.fromRGB(0, 255, 0)), ColorSequenceKeypoint.new(0.5, Color3.fromRGB(0, 255, 255)), ColorSequenceKeypoint.new(0.667, Color3.fromRGB(0, 0, 255)), ColorSequenceKeypoint.new(0.833, Color3.fromRGB(255, 0, 255)), ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 0, 0))}), Parent = HueBar})
+
+		local HueCursor = NewInstance("Frame", {AnchorPoint = Vector2.new(0.5, 0.5), Size = UDim2.new(0, 4, 1, 4), BackgroundColor3 = Color3.fromRGB(255, 255, 255), BorderSizePixel = 0, ZIndex = 3, Parent = HueBar})
+		NewInstance("UICorner", {CornerRadius = UDim.new(1, 0), Parent = HueCursor})
+		NewInstance("UIStroke", {Color = Color3.fromRGB(0, 0, 0), Thickness = 1.5, ApplyStrokeMode = Enum.ApplyStrokeMode.Border, Parent = HueCursor})
+
+		local HexBox = NewInstance("TextBox", {Size = UDim2.new(1, 0, 0, 26), Position = UDim2.new(0, 0, 0, 218), BackgroundColor3 = Color3.fromRGB(0, 0, 0), BorderSizePixel = 0, Text = "#" .. (Config.DefaultColor or Color3.fromRGB(255, 255, 255)):ToHex(), TextColor3 = Color3.fromRGB(255, 255, 255), Font = Enum.Font.Gotham, TextSize = 13, TextXAlignment = Enum.TextXAlignment.Center, ClearTextOnFocus = false, Parent = Panel})
+		NewInstance("UICorner", {CornerRadius = UDim.new(0, 6), Parent = HexBox})
+		local HexStroke = NewInstance("UIStroke", {Color = Color3.fromRGB(150, 150, 150), Thickness = 1, ApplyStrokeMode = Enum.ApplyStrokeMode.Border, Parent = HexBox})
+
+		local function Refresh(FireCallback)
+			local Color = Color3.fromHSV(Hue, Sat, Vib)
+			Swatch.BackgroundColor3 = Color
+			SatVal.BackgroundColor3 = Color3.fromHSV(Hue, 1, 1)
+			SatValCursor.Position = UDim2.fromScale(Sat, 1 - Vib)
+			HueCursor.Position = UDim2.fromScale(Hue, 0.5)
+			if not HexBox:IsFocused() then
+				HexBox.Text = "#" .. Color:ToHex()
+			end
+			if FireCallback then
+				(Config.Callback or function() end)(Color)
+			end
+		end
+
+		UIGesture:MakePannable(SatVal, nil, function(Offset)
+			Sat = math.clamp(Offset.X / SatVal.AbsoluteSize.X, 0, 1)
+			Vib = 1 - math.clamp(Offset.Y / SatVal.AbsoluteSize.Y, 0, 1)
+			Refresh(true)
+		end, {MoveMain = false, ClickToJump = true})
+
+		UIGesture:MakePannable(HueBar, nil, function(Offset)
+			Hue = math.clamp(Offset.X / HueBar.AbsoluteSize.X, 0, 1)
+			Refresh(true)
+		end, {LockAxis = "X", Radius = {0, HueBar.AbsoluteSize.X}, MoveMain = false, ClickToJump = true})
+
+		HexBox.Focused:Connect(function()
+			TweenService:Create(HexStroke, TweenInfo.new(1.2), {Color = Color3.fromRGB(173, 216, 255)}):Play()
+		end)
+
+		HexBox.FocusLost:Connect(function()
+			TweenService:Create(HexStroke, TweenInfo.new(1.2), {Color = Color3.fromRGB(150, 150, 150)}):Play()
+			local Ok, NewColor = pcall(Color3.fromHex, HexBox.Text)
+			if Ok then
+				Hue, Sat, Vib = NewColor:ToHSV()
+				Refresh(true)
+			else
+				Refresh(false)
+			end
+		end)
+
+		UIGesture:MakeDraggable(Panel, TitleBar)
+
+		CloseButton.Activated:Connect(function()
+			Panel.Visible = false
+		end)
+
+		Swatch.Activated:Connect(function()
+			Panel.Visible = not Panel.Visible
+		end)
+
+		Refresh(false)
+	end
+
+	local MainFrame = NewInstance("Frame", {AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.5), Size = UDim2.fromScale(0.65, 0.70), BackgroundColor3 = Color3.fromRGB(0, 0, 0), BackgroundTransparency = 1, BorderSizePixel = 0, ClipsDescendants = true, Visible = false, Parent = ScreenGui})
+	NewInstance("UICorner", {CornerRadius = UDim.new(0, 6), Parent = MainFrame})
+	NewInstance("UIStroke", {Color = Color3.fromRGB(255, 255, 255), Thickness = 1, ApplyStrokeMode = Enum.ApplyStrokeMode.Border, Parent = MainFrame})
+
+	local TitleBar = NewInstance("Frame", {Size = UDim2.new(1, 0, 0, 36), BackgroundColor3 = Color3.fromRGB(0, 0, 0), BorderSizePixel = 0, Parent = MainFrame})
+	NewInstance("UICorner", {CornerRadius = UDim.new(0, 6), Parent = TitleBar})
+	NewInstance("TextLabel", {Size = UDim2.new(1, -46, 1, 0), Position = UDim2.new(0, 12, 0, 0), BackgroundTransparency = 1, Text = "Settings", TextColor3 = Color3.fromRGB(255, 255, 255), Font = Enum.Font.GothamBold, TextSize = 15, TextXAlignment = Enum.TextXAlignment.Left, Parent = TitleBar})
+
+	local CloseButton = NewInstance("TextButton", {AnchorPoint = Vector2.new(1, 0.5), Size = UDim2.new(0, 24, 0, 24), Position = UDim2.new(1, -8, 0.5, 0), BackgroundColor3 = Color3.fromRGB(32, 32, 32), BorderSizePixel = 0, AutoButtonColor = false, Text = "X", TextColor3 = Color3.fromRGB(255, 255, 255), Font = Enum.Font.Nunito, TextSize = 25, Parent = TitleBar})
+	NewInstance("UICorner", {CornerRadius = UDim.new(0, 6), Parent = CloseButton})
+	local CloseStroke = NewInstance("UIStroke", {Color = Color3.fromRGB(150, 150, 150), Thickness = 1, ApplyStrokeMode = Enum.ApplyStrokeMode.Border, Parent = CloseButton})
+
+	CloseButton.Activated:Connect(function()
+		MainFrame.Visible = false
+	end)
+
+	UIGesture:MakeHoverable(CloseButton, nil, function(Hovering)
+		TweenService:Create(CloseStroke, TweenInfo.new(0.15), {Color = Hovering and Color3.fromRGB(173, 216, 255) or Color3.fromRGB(150, 150, 150)}):Play()
+	end)
+
+	UIGesture:MakeDraggable(MainFrame, TitleBar)
+
+	NewInstance("Frame", {Size = UDim2.new(1, 0, 0, 1), Position = UDim2.new(0, 0, 0, 36), BackgroundColor3 = Color3.fromRGB(150, 150, 150), BackgroundTransparency = 0.5, BorderSizePixel = 0, Parent = MainFrame})
+	NewInstance("Frame", {Size = UDim2.new(0, 1, 1, -37), Position = UDim2.new(0.28, 0, 0, 37), BackgroundColor3 = Color3.fromRGB(150, 150, 150), BackgroundTransparency = 0.5, BorderSizePixel = 0, Parent = MainFrame})
+
+	local SidebarBackground = NewInstance("Frame", {Position = UDim2.new(0, 0, 0, 37), Size = UDim2.new(0.28, 0, 1, -37), BackgroundColor3 = Color3.fromRGB(24, 24, 24), BorderSizePixel = 0, Parent = MainFrame})
+	NewInstance("UICorner", {CornerRadius = UDim.new(0, 6), Parent = SidebarBackground})
+
+	local Sidebar = NewInstance("ScrollingFrame", {Position = UDim2.new(0, 0, 0, 77), Size = UDim2.new(0.28, 0, 1, -77), BackgroundTransparency = 1, BorderSizePixel = 0, ScrollBarThickness = 3, CanvasSize = UDim2.new(0, 0, 0, 0), AutomaticCanvasSize = Enum.AutomaticSize.Y, ScrollingDirection = Enum.ScrollingDirection.Y, Parent = MainFrame})
+	NewInstance("UIListLayout", {SortOrder = Enum.SortOrder.LayoutOrder, Padding = UDim.new(0, 4), Parent = Sidebar})
+	NewInstance("UIPadding", {PaddingTop = UDim.new(0, 6), PaddingLeft = UDim.new(0, 6), PaddingRight = UDim.new(0, 6), Parent = Sidebar})
+
+	local SearchBox = NewInstance("TextBox", {Position = UDim2.new(0, 6, 0, 43), Size = UDim2.new(0.28, -12, 0, 28), BackgroundColor3 = Color3.fromRGB(0, 0, 0), BorderSizePixel = 0, Text = "", PlaceholderText = "Search", PlaceholderColor3 = Color3.fromRGB(150, 150, 150), TextColor3 = Color3.fromRGB(255, 255, 255), Font = Enum.Font.Gotham, TextSize = 13, TextXAlignment = Enum.TextXAlignment.Left, ClearTextOnFocus = false, Parent = MainFrame})
+	NewInstance("UICorner", {CornerRadius = UDim.new(0, 6), Parent = SearchBox})
+	local SearchStroke = NewInstance("UIStroke", {Color = Color3.fromRGB(150, 150, 150), Thickness = 1, ApplyStrokeMode = Enum.ApplyStrokeMode.Border, Parent = SearchBox})
+	NewInstance("UIPadding", {PaddingLeft = UDim.new(0, 13), PaddingRight = UDim.new(0, 13), Parent = SearchBox})
+
+	SearchBox.Focused:Connect(function()
+		TweenService:Create(SearchStroke, TweenInfo.new(1.2), {Color = Color3.fromRGB(173, 216, 255)}):Play()
+	end)
+
+	SearchBox.FocusLost:Connect(function()
+		TweenService:Create(SearchStroke, TweenInfo.new(1.2), {Color = Color3.fromRGB(150, 150, 150)}):Play()
+	end)
+
+	local Content = NewInstance("ScrollingFrame", {Position = UDim2.new(0.28, 0, 0, 37), Size = UDim2.new(0.72, 0, 1, -37), BackgroundTransparency = 1, BorderSizePixel = 0, ScrollBarThickness = 3, CanvasSize = UDim2.new(0, 0, 0, 0), AutomaticCanvasSize = Enum.AutomaticSize.Y, ScrollingDirection = Enum.ScrollingDirection.Y, Parent = MainFrame})
+	NewInstance("UIListLayout", {SortOrder = Enum.SortOrder.LayoutOrder, Padding = UDim.new(0, 6), Parent = Content})
+	NewInstance("UIPadding", {PaddingTop = UDim.new(0, 8), PaddingLeft = UDim.new(0, 8), PaddingRight = UDim.new(0, 8), PaddingBottom = UDim.new(0, 8), Parent = Content})
+
+	local Tabs = {}
+
+	SearchBox:GetPropertyChangedSignal("Text"):Connect(function()
+		for _, ExistingTab in ipairs(Tabs) do
+			ApplySearch(ExistingTab.Items, SearchBox.Text)
+		end
+	end)
+
+	function UI.Settings.AddTab(Config)
+		local TabButton = NewInstance("TextButton", {Size = UDim2.new(1, 0, 0, 34), BackgroundColor3 = Color3.fromRGB(32, 32, 32), BackgroundTransparency = 1, BorderSizePixel = 0, AutoButtonColor = false, Text = "", Parent = Sidebar})
+		NewInstance("UICorner", {CornerRadius = UDim.new(0, 8), Parent = TabButton})
+
+		local Indicator = NewInstance("Frame", {AnchorPoint = Vector2.new(0, 0.5), Position = UDim2.new(0, 0, 0.5, 0), Size = UDim2.new(0, 4, 0, 18), BackgroundColor3 = Color3.fromRGB(90, 150, 255), BackgroundTransparency = 1, BorderSizePixel = 0, Parent = TabButton})
+		NewInstance("UICorner", {CornerRadius = UDim.new(1, 0), Parent = Indicator})
+
+		local IconLabel = NewInstance("ImageLabel", {AnchorPoint = Vector2.new(0, 0.5), Position = UDim2.new(0, 14, 0.5, 0), Size = UDim2.new(0, 18, 0, 18), BackgroundTransparency = 1, Image = Config.Icon and Config.Icon.Deselected or "", Visible = false, Parent = TabButton})
+
+		local TabLabel = NewInstance("TextLabel", {Size = UDim2.new(1, -14, 1, 0), Position = UDim2.new(0, 14, 0, 0), BackgroundTransparency = 1, Text = Config.Name or "", TextColor3 = Color3.fromRGB(190, 190, 190), Font = Enum.Font.Gotham, TextSize = 14, TextXAlignment = Enum.TextXAlignment.Left, Parent = TabButton})
+
+		local TabContent = NewInstance("Frame", {Size = UDim2.new(1, 0, 0, 0), AutomaticSize = Enum.AutomaticSize.Y, BackgroundTransparency = 1, Visible = false, Parent = Content})
+		NewInstance("UIListLayout", {SortOrder = Enum.SortOrder.LayoutOrder, Padding = UDim.new(0, 6), HorizontalAlignment = Enum.HorizontalAlignment.Center, Parent = TabContent})
+
+		local Tab = setmetatable({Button = TabButton, Indicator = Indicator, Label = TabLabel, Content = TabContent, IconLabel = IconLabel, Icon = Config.Icon, Selected = false, Items = {}}, Tab)
+
+		if Config.Icon then
+			task.spawn(function()
+				local DeselectedValid = false
+				local SelectedValid = false
+
+				ContentProvider:PreloadAsync({Config.Icon.Deselected, Config.Icon.Selected}, function(ContentId, Status)
+					if Status == Enum.AssetFetchStatus.Success then
+						if ContentId == Config.Icon.Deselected then
+							DeselectedValid = true
+						elseif ContentId == Config.Icon.Selected then
+							SelectedValid = true
+						end
+					end
+				end)
+
+				Tab.DeselectedIconValid = DeselectedValid
+				Tab.SelectedIconValid = SelectedValid
+
+				if DeselectedValid or SelectedValid then
+					IconLabel.Visible = true
+					TabLabel.Position = UDim2.new(0, 38, 0, 0)
+					TabLabel.Size = UDim2.new(1, -38, 1, 0)
+
+					if Tab.Selected and SelectedValid then
+						IconLabel.Image = Config.Icon.Selected
+					elseif DeselectedValid then
+						IconLabel.Image = Config.Icon.Deselected
+					else
+						IconLabel.Image = Config.Icon.Selected
+					end
+				end
+			end)
+		end
+
+		local function SelectTab()
+			for _, ExistingTab in ipairs(Tabs) do
+				TweenService:Create(ExistingTab.Indicator, TweenInfo.new(0.15), {BackgroundTransparency = 1}):Play()
+				TweenService:Create(ExistingTab.Button, TweenInfo.new(0.15), {BackgroundTransparency = 1}):Play()
+				ExistingTab.Label.TextColor3 = Color3.fromRGB(190, 190, 190)
+				ExistingTab.Content.Visible = false
+				ExistingTab.Selected = false
+				if ExistingTab.DeselectedIconValid then
+					ExistingTab.IconLabel.Image = ExistingTab.Icon.Deselected
+				end
+			end
+			TweenService:Create(Indicator, TweenInfo.new(0.15), {BackgroundTransparency = 0}):Play()
+			TweenService:Create(TabButton, TweenInfo.new(0.15), {BackgroundTransparency = 0}):Play()
+			TabLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+			TabContent.Visible = true
+			Tab.Selected = true
+			if Tab.SelectedIconValid then
+				IconLabel.Image = Tab.Icon.Selected
+			end
+			ApplySearch(Tab.Items, SearchBox.Text)
+		end
+
+		TabButton.Activated:Connect(SelectTab)
+		table.insert(Tabs, Tab)
+
+		if #Tabs == 1 then
+			SelectTab()
+		end
+
+		return Tab
+	end
+
+	function UI.Settings.ShowWindow()
+		MainFrame.Visible = true
 	end
 end
 
