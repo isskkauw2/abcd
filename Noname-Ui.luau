@@ -1778,6 +1778,8 @@ do
 		local InputStroke = NewInstance("UIStroke", {Color = Color3.fromRGB(150, 150, 150), Thickness = 1, ApplyStrokeMode = Enum.ApplyStrokeMode.Border, Parent = InputBox})
 		NewInstance("UIPadding", {PaddingLeft = UDim.new(0, 10), PaddingRight = UDim.new(0, 10), Parent = InputBox})
 
+		local LastValue = Config.Default or ""
+
 		InputBox:GetPropertyChangedSignal("Text"):Connect(function()
 			if Config.Numeric then
 				local Filtered = string.gsub(InputBox.Text, "[^%d%.%-]", "")
@@ -1787,6 +1789,7 @@ do
 				end
 			end
 			if not Config.Finished then
+				LastValue = InputBox.Text
 				(Config.Callback or function() end)(InputBox.Text)
 			end
 		end)
@@ -1797,8 +1800,13 @@ do
 
 		InputBox.FocusLost:Connect(function(EnterPressed)
 			TweenService:Create(InputStroke, TweenInfo.new(1.2), {Color = Color3.fromRGB(150, 150, 150)}):Play()
-			if Config.Finished and EnterPressed then
-				(Config.Callback or function() end)(InputBox.Text)
+			if Config.Finished then
+				if EnterPressed then
+					LastValue = InputBox.Text
+					(Config.Callback or function() end)(InputBox.Text)
+				else
+					InputBox.Text = LastValue
+				end
 			end
 		end)
 	end
