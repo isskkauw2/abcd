@@ -118,7 +118,18 @@ do
 
 	NewInstance("UICorner", { Parent = ToggleButton, CornerRadius = UDim.new(0.5, 0) })
 
-	UIGesture:MakeDraggable(ToggleButton)
+	local ToggleDrag = UIGesture:MakeDraggable(ToggleButton)
+
+	function UI.SetToggleButtonLocked(Locked)
+		if Locked then
+			if ToggleDrag then
+				ToggleDrag:Disconnect()
+				ToggleDrag = nil
+			end
+		elseif not ToggleDrag then
+			ToggleDrag = UIGesture:MakeDraggable(ToggleButton)
+		end
+	end
 
 	function UI.PlayToggleSpawn()
 		ToggleButton.Visible = true
