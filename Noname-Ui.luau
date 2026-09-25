@@ -1789,7 +1789,7 @@ do
 				end
 			end
 			if not Config.Finished then
-				LastValue = InputBox.Text
+				LastValue = InputBox.Text;
 				(Config.Callback or function() end)(InputBox.Text)
 			end
 		end)
@@ -1802,7 +1802,7 @@ do
 			TweenService:Create(InputStroke, TweenInfo.new(1.2), {Color = Color3.fromRGB(150, 150, 150)}):Play()
 			if Config.Finished then
 				if EnterPressed then
-					LastValue = InputBox.Text
+					LastValue = InputBox.Text;
 					(Config.Callback or function() end)(InputBox.Text)
 				else
 					InputBox.Text = LastValue
