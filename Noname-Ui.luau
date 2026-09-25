@@ -2119,7 +2119,8 @@ do
 		TweenService:Create(SearchStroke, TweenInfo.new(1.2), {Color = Color3.fromRGB(150, 150, 150)}):Play()
 	end)
 
-	local Content = NewInstance("ScrollingFrame", {Position = UDim2.new(0.28, 0, 0, 37), Size = UDim2.new(0.72, 0, 1, -37), BackgroundTransparency = 1, BorderSizePixel = 0, ScrollBarThickness = 3, CanvasSize = UDim2.new(0, 0, 0, 0), AutomaticCanvasSize = Enum.AutomaticSize.Y, ScrollingDirection = Enum.ScrollingDirection.Y, Parent = MainFrame})
+	local Content = NewInstance("ScrollingFrame", {Position = UDim2.new(0.28, 0, 0, 37), Size = UDim2.new(0.72, 0, 1, -37), BackgroundColor3 = Color3.fromRGB(24, 24, 24), BorderSizePixel = 0, ScrollBarThickness = 3, CanvasSize = UDim2.new(0, 0, 0, 0), AutomaticCanvasSize = Enum.AutomaticSize.Y, ScrollingDirection = Enum.ScrollingDirection.Y, Parent = MainFrame})
+	NewInstance("UICorner", {CornerRadius = UDim.new(0, 6), Parent = Content})
 	NewInstance("UIListLayout", {SortOrder = Enum.SortOrder.LayoutOrder, Padding = UDim.new(0, 6), Parent = Content})
 	NewInstance("UIPadding", {PaddingTop = UDim.new(0, 8), PaddingLeft = UDim.new(0, 8), PaddingRight = UDim.new(0, 8), PaddingBottom = UDim.new(0, 8), Parent = Content})
 
