@@ -94,7 +94,7 @@ local ScreenGui = NewInstance("ScreenGui", {
 	DisplayOrder = 2147483647,
 })
 
-UI.AutoScale = NewInstance("UIScale", { Parent = ScreenGui })
+local Scale = NewInstance("UIScale", { Parent = ScreenGui })
 
 --[[ Toggle ]]--
 do
@@ -490,7 +490,7 @@ do
 
 	local function Relayout()
 		local ScreenSize = ScreenGui.AbsoluteSize
-		local Scale = math.max(UI.AutoScale.Scale, 0.01)
+		local Scale = math.max(Scale.Scale, 0.01)
 		BarWidth = math.min(520, math.max(280, math.floor((ScreenSize.X - 24) / Scale + 0.5)))
 
 		local Compact = IsMobile and ScreenSize.Y < 620
@@ -511,7 +511,7 @@ do
 	end
 
 	ScreenGui:GetPropertyChangedSignal("AbsoluteSize"):Connect(Relayout)
-	UI.AutoScale:GetPropertyChangedSignal("Scale"):Connect(Relayout)
+	Scale:GetPropertyChangedSignal("Scale"):Connect(Relayout)
 	Relayout()
 
 	function UI.CommandBar.Open()
@@ -871,7 +871,7 @@ do
 
 	local function Relayout()
 		local ScreenSize = ScreenGui.AbsoluteSize
-		local Scale = math.max(UI.AutoScale.Scale, 0.01)
+		local Scale = math.max(Scale.Scale, 0.01)
 		Width = math.min(460, math.max(280, math.floor((ScreenSize.X - 40) / Scale + 0.5)))
 		Height = math.min(520, math.max(260, math.floor((ScreenSize.Y - 120) / Scale + 0.5)))
 
@@ -881,7 +881,7 @@ do
 	end
 
 	ScreenGui:GetPropertyChangedSignal("AbsoluteSize"):Connect(Relayout)
-	UI.AutoScale:GetPropertyChangedSignal("Scale"):Connect(Relayout)
+	Scale:GetPropertyChangedSignal("Scale"):Connect(Relayout)
 	Relayout()
 
 	local function Open()
@@ -1143,7 +1143,7 @@ do
 	CloseButton.Activated:Connect(Close)
 
 	local function GetSize()
-		local Scale = math.max(UI.AutoScale.Scale, 0.01)
+		local Scale = math.max(Scale.Scale, 0.01)
 		return UDim2.new(0, math.min(360, math.max(240, math.floor((ScreenGui.AbsoluteSize.X - 40) / Scale + 0.5))), 0, 56 + 50 * Count)
 	end
 
@@ -1154,7 +1154,7 @@ do
 	end
 
 	ScreenGui:GetPropertyChangedSignal("AbsoluteSize"):Connect(Relayout)
-	UI.AutoScale:GetPropertyChangedSignal("Scale"):Connect(Relayout)
+	Scale:GetPropertyChangedSignal("Scale"):Connect(Relayout)
 
 	function UI.CreatePicker(Config)
 		Count = math.min(#Config, 4)
@@ -1690,6 +1690,16 @@ do
 			Refresh(true);
 			(Config.Callback or function() end)(Toggled)
 		end)
+
+		local ToggleAPI = {}
+
+		function ToggleAPI:SetState(NewState)
+			Toggled = NewState
+			Refresh(true);
+			(Config.Callback or function() end)(Toggled)
+		end
+
+		return ToggleAPI
 	end
 
 	function Tab:AddSlider(Config)
@@ -2235,6 +2245,69 @@ do
 	function UI.Settings.ShowWindow()
 		MainFrame.Visible = true
 	end
+end
+
+--[[ UIScale ]]--
+do
+	local Panel = NewInstance("Frame", {AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.5), Size = UDim2.new(0, 280, 0, 130), BackgroundColor3 = Color3.fromRGB(0, 0, 0), BorderSizePixel = 0, ClipsDescendants = true, Visible = false, Parent = ScreenGui})
+	NewInstance("UICorner", {CornerRadius = UDim.new(0, 6), Parent = Panel})
+	NewInstance("UIStroke", {Color = Color3.fromRGB(255, 255, 255), Thickness = 1, ApplyStrokeMode = Enum.ApplyStrokeMode.Border, Parent = Panel})
+
+	local TitleBar = NewInstance("Frame", {Size = UDim2.new(1, 0, 0, 36), BackgroundColor3 = Color3.fromRGB(0, 0, 0), BorderSizePixel = 0, Parent = Panel})
+	NewInstance("UICorner", {CornerRadius = UDim.new(0, 6), Parent = TitleBar})
+	NewInstance("TextLabel", {Size = UDim2.new(1, -46, 1, 0), Position = UDim2.new(0, 12, 0, 0), BackgroundTransparency = 1, Text = "UIScaler", TextColor3 = Color3.fromRGB(255, 255, 255), Font = Enum.Font.GothamBold, TextSize = 15, TextXAlignment = Enum.TextXAlignment.Left, Parent = TitleBar})
+
+	local CloseButton = NewInstance("TextButton", {AnchorPoint = Vector2.new(1, 0.5), Size = UDim2.new(0, 24, 0, 24), Position = UDim2.new(1, -8, 0.5, 0), BackgroundColor3 = Color3.fromRGB(32, 32, 32), BorderSizePixel = 0, AutoButtonColor = false, Text = "X", TextColor3 = Color3.fromRGB(255, 255, 255), Font = Enum.Font.Nunito, TextSize = 25, Parent = TitleBar})
+	NewInstance("UICorner", {CornerRadius = UDim.new(0, 6), Parent = CloseButton})
+	local CloseStroke = NewInstance("UIStroke", {Color = Color3.fromRGB(150, 150, 150), Thickness = 1, ApplyStrokeMode = Enum.ApplyStrokeMode.Border, Parent = CloseButton})
+
+	NewInstance("Frame", {Size = UDim2.new(1, 0, 0, 1), Position = UDim2.new(0, 0, 0, 36), BackgroundColor3 = Color3.fromRGB(150, 150, 150), BackgroundTransparency = 0.5, BorderSizePixel = 0, Parent = Panel})
+
+	local Track = NewInstance("CanvasGroup", {AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.new(0.5, 0, 0, 83), Size = UDim2.new(1, -32, 0, 22), BackgroundColor3 = Color3.fromRGB(0, 0, 0), BorderSizePixel = 0, Parent = Panel})
+	NewInstance("UICorner", {CornerRadius = UDim.new(1, 0), Parent = Track})
+	local TrackStroke = NewInstance("UIStroke", {Color = Color3.fromRGB(150, 150, 150), Thickness = 1, ApplyStrokeMode = Enum.ApplyStrokeMode.Border, Parent = Track})
+
+	local Fill = NewInstance("Frame", {Size = UDim2.new(0, 0, 1, 0), BackgroundColor3 = Color3.fromRGB(90, 150, 255), BorderSizePixel = 0, ZIndex = 2, Parent = Track})
+
+	local ValueLabel = NewInstance("TextLabel", {Size = UDim2.new(1, 0, 1, 0), BackgroundTransparency = 1, Text = "", TextColor3 = Color3.fromRGB(255, 255, 255), Font = Enum.Font.GothamBold, TextSize = 13, ZIndex = 4, Parent = Track})
+
+	local IsDragging = false
+
+	local function SetValue(NewValue, FireCallback)
+		local Value = tonumber(string.format("%.2f", math.clamp(NewValue, 0.5, 2.5)))
+		local Alpha = (Value - 0.5) / (2.5 - 0.5)
+		Fill.Size = UDim2.new(Alpha, 0, 1, 0)
+		ValueLabel.Text = string.format("%.2fx", Value)
+		if FireCallback then
+			Scale.Scale = Value
+		end
+	end
+
+	function UI.SetScale(Value)
+		SetValue(Value, true)
+	end
+
+	function UI.OpenUIScale()
+		Panel.Visible = true
+	end
+
+	UIGesture:MakePannable(Track, nil, function(Offset, _, Dragging)
+		SetValue(0.5 + (Offset.X / Track.AbsoluteSize.X) * (2.5 - 0.5), true)
+		if Dragging ~= IsDragging then
+			IsDragging = Dragging
+			TweenService:Create(TrackStroke, TweenInfo.new(0.15), {Color = Dragging and Color3.fromRGB(173, 216, 255) or Color3.fromRGB(150, 150, 150)}):Play()
+		end
+	end, {LockAxis = "X", Radius = {0, Track.AbsoluteSize.X}, MoveMain = false, ClickToJump = true})
+
+	UIGesture:MakeHoverable(CloseButton, nil, function(Hovering)
+		TweenService:Create(CloseStroke, TweenInfo.new(0.15), {Color = Hovering and Color3.fromRGB(173, 216, 255) or Color3.fromRGB(150, 150, 150)}):Play()
+	end)
+
+	CloseButton.Activated:Connect(function()
+		Panel.Visible = false
+	end)
+
+	SetValue(Scale.Scale, false)
 end
 
 return UI
