@@ -60,6 +60,8 @@ local UI = {
 	HUD = {},
 	CommandList = {},
 	Settings = {},
+	ScaleSliderFn = function() end,
+	ScaleSliderDragEndFn = function() end,
 }
 UI.CmdOpen = false
 UI.CmdListOpen = false
@@ -1707,6 +1709,7 @@ do
 		local Max = Config.Max or 100
 		local Step = Config.Step or 1
 		local HasDesc = Config.Desc and Config.Desc ~= ""
+		local HasTextbox = Config.IsTextbox ~= false
 
 		local SliderFrame = NewInstance("Frame", {AnchorPoint = Vector2.new(0.5, 0.5), Size = UDim2.new(1, 0, 0, HasDesc and 72 or 58), BackgroundColor3 = Color3.fromRGB(32, 32, 32), BorderSizePixel = 0, Parent = self.Content})
 		NewInstance("UICorner", {CornerRadius = UDim.new(0, 6), Parent = SliderFrame})
@@ -1719,7 +1722,7 @@ do
 			NewInstance("TextLabel", {Size = UDim2.new(1, -24, 0, 14), Position = UDim2.new(0, 12, 0, 22), BackgroundTransparency = 1, Text = Config.Desc, TextColor3 = Color3.fromRGB(180, 180, 180), TextTransparency = 0.3, Font = Enum.Font.Gotham, TextSize = 12, TextXAlignment = Enum.TextXAlignment.Left, Parent = SliderFrame})
 		end
 
-		local Track = NewInstance("CanvasGroup", {Size = UDim2.new(1, -90, 0, 22), Position = UDim2.new(0, 12, 0, HasDesc and 44 or 30), BackgroundColor3 = Color3.fromRGB(0, 0, 0), BorderSizePixel = 0, Parent = SliderFrame})
+		local Track = NewInstance("CanvasGroup", {Size = UDim2.new(1, HasTextbox and -90 or -24, 0, 22), Position = UDim2.new(0, 12, 0, HasDesc and 44 or 30), BackgroundColor3 = Color3.fromRGB(0, 0, 0), BorderSizePixel = 0, Parent = SliderFrame})
 		NewInstance("UICorner", {CornerRadius = UDim.new(1, 0), Parent = Track})
 		local TrackStroke = NewInstance("UIStroke", {Color = Color3.fromRGB(150, 150, 150), Thickness = 1, ApplyStrokeMode = Enum.ApplyStrokeMode.Border, Parent = Track})
 
@@ -1727,7 +1730,7 @@ do
 
 		local ValueLabel = NewInstance("TextLabel", {Size = UDim2.new(1, 0, 1, 0), BackgroundTransparency = 1, Text = "", TextColor3 = Color3.fromRGB(255, 255, 255), Font = Enum.Font.GothamBold, TextSize = 13, ZIndex = 4, Parent = Track})
 
-		local InputBox = NewInstance("TextBox", {AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -12, 0, HasDesc and 44 or 30), Size = UDim2.new(0, 58, 0, 22), BackgroundColor3 = Color3.fromRGB(0, 0, 0), BorderSizePixel = 0, Text = "", TextColor3 = Color3.fromRGB(255, 255, 255), Font = Enum.Font.Gotham, TextSize = 13, ClearTextOnFocus = false, Parent = SliderFrame})
+		local InputBox = NewInstance("TextBox", {AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -12, 0, HasDesc and 44 or 30), Size = UDim2.new(0, 58, 0, 22), BackgroundColor3 = Color3.fromRGB(0, 0, 0), BorderSizePixel = 0, Text = "", TextColor3 = Color3.fromRGB(255, 255, 255), Font = Enum.Font.Gotham, TextSize = 13, ClearTextOnFocus = false, Visible = HasTextbox, Parent = SliderFrame})
 		NewInstance("UICorner", {CornerRadius = UDim.new(0, 6), Parent = InputBox})
 		local InputStroke = NewInstance("UIStroke", {Color = Color3.fromRGB(150, 150, 150), Thickness = 1, ApplyStrokeMode = Enum.ApplyStrokeMode.Border, Parent = InputBox})
 
@@ -1753,6 +1756,9 @@ do
 			if Dragging ~= IsDragging then
 				IsDragging = Dragging
 				TweenService:Create(TrackStroke, TweenInfo.new(0.15), {Color = Dragging and Color3.fromRGB(173, 216, 255) or Color3.fromRGB(150, 150, 150)}):Play()
+				if not Dragging and Config.DragEndFn then
+					Config.DragEndFn(Value)
+				end
 			end
 		end, {LockAxis = "X", Radius = {0, Track.AbsoluteSize.X}, MoveMain = false, ClickToJump = true})
 
@@ -2280,6 +2286,7 @@ do
 		ValueLabel.Text = string.format("%.2fx", Value)
 		if FireCallback then
 			Scale.Scale = Value
+			UI.ScaleSliderFn(Value)
 		end
 	end
 
@@ -2296,6 +2303,9 @@ do
 		if Dragging ~= IsDragging then
 			IsDragging = Dragging
 			TweenService:Create(TrackStroke, TweenInfo.new(0.15), {Color = Dragging and Color3.fromRGB(173, 216, 255) or Color3.fromRGB(150, 150, 150)}):Play()
+			if not Dragging then
+				UI.ScaleSliderDragEndFn(Scale.Scale)
+			end
 		end
 	end, {LockAxis = "X", Radius = {0, Track.AbsoluteSize.X}, MoveMain = false, ClickToJump = true})
 
