@@ -93,10 +93,17 @@ local ScreenGui = NewInstance("ScreenGui", {
 	ResetOnSpawn = false,
 	ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
 	IgnoreGuiInset = true,
-	DisplayOrder = 2147483647,
+	DisplayOrder = 2147483646,
 })
 
 local Scale = NewInstance("UIScale", { Parent = ScreenGui })
+
+local ScreenGui2 = NewInstance("ScreenGui", {
+	ResetOnSpawn = false,
+	ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
+	IgnoreGuiInset = true,
+	DisplayOrder = 2147483647,
+})
 
 --[[ Toggle ]]--
 do
@@ -2020,16 +2027,18 @@ do
 
 		local Hue, Sat, Vib = (Config.DefaultColor or Color3.fromRGB(255, 255, 255)):ToHSV()
 
-		local Panel = NewInstance("Frame", {AnchorPoint = Vector2.new(0.5, 0.5), Size = UDim2.new(0, 190, 0, 258), Position = UDim2.new(0.5, 0, 0.5, 0), BackgroundColor3 = Color3.fromRGB(24, 24, 24), BorderSizePixel = 0, Visible = false, ZIndex = 10, Parent = ScreenGui})
+		local Panel = NewInstance("Frame", {AnchorPoint = Vector2.new(0.5, 0.5), Size = UDim2.fromScale(0.25, 0.6), Position = UDim2.new(0.5, 0, 0.5, 0), BackgroundColor3 = Color3.fromRGB(24, 24, 24), BorderSizePixel = 0, Visible = false, ZIndex = 10, Parent = ScreenGui2})
 		NewInstance("UICorner", {CornerRadius = UDim.new(0, 6), Parent = Panel})
 		NewInstance("UIStroke", {Color = Color3.fromRGB(150, 150, 150), Thickness = 1, ApplyStrokeMode = Enum.ApplyStrokeMode.Border, Parent = Panel})
-		NewInstance("UIPadding", {PaddingTop = UDim.new(0, 10), PaddingLeft = UDim.new(0, 10), PaddingRight = UDim.new(0, 10), PaddingBottom = UDim.new(0, 10), Parent = Panel})
+		NewInstance("UIAspectRatioConstraint", {AspectRatio = 190 / 258, Parent = Panel})
+		NewInstance("UIPadding", {PaddingTop = UDim.new(0.0388, 0), PaddingLeft = UDim.new(0.0526, 0), PaddingRight = UDim.new(0.0526, 0), PaddingBottom = UDim.new(0.0388, 0), Parent = Panel})
 
-		local TitleBar = NewInstance("Frame", {Size = UDim2.new(1, 0, 0, 24), BackgroundTransparency = 1, Parent = Panel})
-		NewInstance("TextLabel", {Size = UDim2.new(1, -24, 1, 0), BackgroundTransparency = 1, Text = "Color Editor", TextColor3 = Color3.fromRGB(255, 255, 255), Font = Enum.Font.GothamBold, TextSize = 14, TextXAlignment = Enum.TextXAlignment.Left, Parent = TitleBar})
-		local CloseButton = NewInstance("TextButton", {AnchorPoint = Vector2.new(1, 0.5), Position = UDim2.new(1, 0, 0.5, 0), Size = UDim2.new(0, 20, 0, 20), BackgroundTransparency = 1, AutoButtonColor = false, Text = "X", TextColor3 = Color3.fromRGB(255, 255, 255), Font = Enum.Font.Nunito, TextSize = 18, Parent = TitleBar})
+		local TitleBar = NewInstance("Frame", {Size = UDim2.fromScale(1, 0.1008), BackgroundTransparency = 1, Parent = Panel})
+		NewInstance("UITextSizeConstraint", {MaxTextSize = 14, Parent = NewInstance("TextLabel", {Size = UDim2.fromScale(0.8588, 1), BackgroundTransparency = 1, Text = "Color Editor", TextColor3 = Color3.fromRGB(255, 255, 255), Font = Enum.Font.GothamBold, TextScaled = true, TextSize = 14, TextXAlignment = Enum.TextXAlignment.Left, Parent = TitleBar})})
+		local CloseButton = NewInstance("TextButton", {AnchorPoint = Vector2.new(1, 0.5), Position = UDim2.new(1, 0, 0.5, 0), Size = UDim2.fromScale(0.1176, 0.8333), BackgroundTransparency = 1, AutoButtonColor = false, Text = "X", TextColor3 = Color3.fromRGB(255, 255, 255), Font = Enum.Font.Nunito, TextScaled = true, TextSize = 18, Parent = TitleBar})
+		NewInstance("UITextSizeConstraint", {MaxTextSize = 18, Parent = CloseButton})
 
-		local SatVal = NewInstance("Frame", {Position = UDim2.new(0, 0, 0, 32), Size = UDim2.new(1, 0, 0, 150), BackgroundColor3 = Color3.fromHSV(Hue, 1, 1), BorderSizePixel = 0, ClipsDescendants = true, Parent = Panel})
+		local SatVal = NewInstance("Frame", {Position = UDim2.fromScale(0, 0.1345), Size = UDim2.fromScale(1, 0.6303), BackgroundColor3 = Color3.fromHSV(Hue, 1, 1), BorderSizePixel = 0, ClipsDescendants = true, Parent = Panel})
 		NewInstance("UICorner", {CornerRadius = UDim.new(0, 6), Parent = SatVal})
 
 		local SatOverlay = NewInstance("Frame", {Size = UDim2.new(1, 0, 1, 0), BackgroundColor3 = Color3.fromRGB(255, 255, 255), BorderSizePixel = 0, Parent = SatVal})
@@ -2040,20 +2049,21 @@ do
 		NewInstance("UICorner", {CornerRadius = UDim.new(0, 6), Parent = VibOverlay})
 		NewInstance("UIGradient", {Color = ColorSequence.new(Color3.fromRGB(0, 0, 0), Color3.fromRGB(0, 0, 0)), Transparency = NumberSequence.new(1, 0), Rotation = 90, Parent = VibOverlay})
 
-		local SatValCursor = NewInstance("Frame", {AnchorPoint = Vector2.new(0.5, 0.5), Size = UDim2.new(0, 10, 0, 10), BackgroundColor3 = Color3.fromRGB(255, 255, 255), BorderSizePixel = 0, ZIndex = 3, Parent = SatVal})
+		local SatValCursor = NewInstance("Frame", {AnchorPoint = Vector2.new(0.5, 0.5), Size = UDim2.fromScale(0.0588, 0.0667), BackgroundColor3 = Color3.fromRGB(255, 255, 255), BorderSizePixel = 0, ZIndex = 3, Parent = SatVal})
 		NewInstance("UICorner", {CornerRadius = UDim.new(1, 0), Parent = SatValCursor})
 		NewInstance("UIStroke", {Color = Color3.fromRGB(0, 0, 0), Thickness = 1.5, ApplyStrokeMode = Enum.ApplyStrokeMode.Border, Parent = SatValCursor})
 
-		local HueBar = NewInstance("Frame", {Size = UDim2.new(1, 0, 0, 16), Position = UDim2.new(0, 0, 0, 192), BackgroundColor3 = Color3.fromRGB(255, 255, 255), BorderSizePixel = 0, Parent = Panel})
+		local HueBar = NewInstance("Frame", {Size = UDim2.fromScale(1, 0.0672), Position = UDim2.fromScale(0, 0.8067), BackgroundColor3 = Color3.fromRGB(255, 255, 255), BorderSizePixel = 0, Parent = Panel})
 		NewInstance("UICorner", {CornerRadius = UDim.new(1, 0), Parent = HueBar})
 		NewInstance("UIGradient", {Color = ColorSequence.new({ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 0, 0)), ColorSequenceKeypoint.new(0.167, Color3.fromRGB(255, 255, 0)), ColorSequenceKeypoint.new(0.333, Color3.fromRGB(0, 255, 0)), ColorSequenceKeypoint.new(0.5, Color3.fromRGB(0, 255, 255)), ColorSequenceKeypoint.new(0.667, Color3.fromRGB(0, 0, 255)), ColorSequenceKeypoint.new(0.833, Color3.fromRGB(255, 0, 255)), ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 0, 0))}), Parent = HueBar})
 
-		local HueCursor = NewInstance("Frame", {AnchorPoint = Vector2.new(0.5, 0.5), Size = UDim2.new(0, 4, 1, 4), BackgroundColor3 = Color3.fromRGB(255, 255, 255), BorderSizePixel = 0, ZIndex = 3, Parent = HueBar})
+		local HueCursor = NewInstance("Frame", {AnchorPoint = Vector2.new(0.5, 0.5), Size = UDim2.fromScale(0.0235, 1.25), BackgroundColor3 = Color3.fromRGB(255, 255, 255), BorderSizePixel = 0, ZIndex = 3, Parent = HueBar})
 		NewInstance("UICorner", {CornerRadius = UDim.new(1, 0), Parent = HueCursor})
 		NewInstance("UIStroke", {Color = Color3.fromRGB(0, 0, 0), Thickness = 1.5, ApplyStrokeMode = Enum.ApplyStrokeMode.Border, Parent = HueCursor})
 
-		local HexBox = NewInstance("TextBox", {Size = UDim2.new(1, 0, 0, 26), Position = UDim2.new(0, 0, 0, 218), BackgroundColor3 = Color3.fromRGB(0, 0, 0), BorderSizePixel = 0, Text = "#" .. (Config.DefaultColor or Color3.fromRGB(255, 255, 255)):ToHex(), TextColor3 = Color3.fromRGB(255, 255, 255), Font = Enum.Font.Gotham, TextSize = 13, TextXAlignment = Enum.TextXAlignment.Center, ClearTextOnFocus = false, Parent = Panel})
+		local HexBox = NewInstance("TextBox", {Size = UDim2.fromScale(1, 0.1092), Position = UDim2.fromScale(0, 0.916), BackgroundColor3 = Color3.fromRGB(0, 0, 0), BorderSizePixel = 0, Text = "#" .. (Config.DefaultColor or Color3.fromRGB(255, 255, 255)):ToHex(), TextColor3 = Color3.fromRGB(255, 255, 255), Font = Enum.Font.Gotham, TextScaled = true, TextSize = 13, TextXAlignment = Enum.TextXAlignment.Center, ClearTextOnFocus = false, Parent = Panel})
 		NewInstance("UICorner", {CornerRadius = UDim.new(0, 6), Parent = HexBox})
+		NewInstance("UITextSizeConstraint", {MaxTextSize = 13, Parent = HexBox})
 		local HexStroke = NewInstance("UIStroke", {Color = Color3.fromRGB(150, 150, 150), Thickness = 1, ApplyStrokeMode = Enum.ApplyStrokeMode.Border, Parent = HexBox})
 
 		local function Refresh(FireCallback)
@@ -2109,16 +2119,18 @@ do
 		Refresh(false)
 	end
 
-	local MainFrame = NewInstance("Frame", {AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.5), Size = UDim2.fromScale(0.65, 0.70), BackgroundColor3 = Color3.fromRGB(0, 0, 0), BorderSizePixel = 0, ClipsDescendants = true, Visible = false, Parent = ScreenGui})
+	local MainFrame = NewInstance("Frame", {AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.5), Size = UDim2.fromScale(0.65, 0.70), BackgroundColor3 = Color3.fromRGB(0, 0, 0), BorderSizePixel = 0, ClipsDescendants = true, Visible = false, Parent = ScreenGui2})
+	NewInstance("UIAspectRatioConstraint", {AspectRatio = 832 / 504, DominantAxis = Enum.DominantAxis.Width, Parent = MainFrame})
 	NewInstance("UICorner", {CornerRadius = UDim.new(0, 6), Parent = MainFrame})
 	NewInstance("UIStroke", {Color = Color3.fromRGB(255, 255, 255), Thickness = 1, ApplyStrokeMode = Enum.ApplyStrokeMode.Border, Parent = MainFrame})
 
-	local TitleBar = NewInstance("Frame", {Size = UDim2.new(1, 0, 0, 36), BackgroundColor3 = Color3.fromRGB(0, 0, 0), BorderSizePixel = 0, Parent = MainFrame})
+	local TitleBar = NewInstance("Frame", {Size = UDim2.fromScale(1, 0.0714), BackgroundColor3 = Color3.fromRGB(0, 0, 0), BorderSizePixel = 0, Parent = MainFrame})
 	NewInstance("UICorner", {CornerRadius = UDim.new(0, 6), Parent = TitleBar})
-	NewInstance("TextLabel", {Size = UDim2.new(1, -46, 1, 0), Position = UDim2.new(0, 12, 0, 0), BackgroundTransparency = 1, Text = "Settings", TextColor3 = Color3.fromRGB(255, 255, 255), Font = Enum.Font.GothamBold, TextSize = 15, TextXAlignment = Enum.TextXAlignment.Left, Parent = TitleBar})
+	NewInstance("UITextSizeConstraint", {MaxTextSize = 15, Parent = NewInstance("TextLabel", {Size = UDim2.fromScale(0.9447, 1), Position = UDim2.fromScale(0.0144, 0), BackgroundTransparency = 1, Text = "Settings", TextColor3 = Color3.fromRGB(255, 255, 255), Font = Enum.Font.GothamBold, TextScaled = true, TextSize = 15, TextXAlignment = Enum.TextXAlignment.Left, Parent = TitleBar})})
 
-	local CloseButton = NewInstance("TextButton", {AnchorPoint = Vector2.new(1, 0.5), Size = UDim2.new(0, 24, 0, 24), Position = UDim2.new(1, -8, 0.5, 0), BackgroundColor3 = Color3.fromRGB(32, 32, 32), BorderSizePixel = 0, AutoButtonColor = false, Text = "X", TextColor3 = Color3.fromRGB(255, 255, 255), Font = Enum.Font.Nunito, TextSize = 25, Parent = TitleBar})
+	local CloseButton = NewInstance("TextButton", {AnchorPoint = Vector2.new(1, 0.5), Size = UDim2.fromScale(0.0288, 0.6667), Position = UDim2.new(1, 0, 0.5, 0), BackgroundColor3 = Color3.fromRGB(32, 32, 32), BorderSizePixel = 0, AutoButtonColor = false, Text = "X", TextColor3 = Color3.fromRGB(255, 255, 255), Font = Enum.Font.Nunito, TextScaled = true, TextSize = 25, Parent = TitleBar})
 	NewInstance("UICorner", {CornerRadius = UDim.new(0, 6), Parent = CloseButton})
+	NewInstance("UITextSizeConstraint", {MaxTextSize = 25, Parent = CloseButton})
 	local CloseStroke = NewInstance("UIStroke", {Color = Color3.fromRGB(150, 150, 150), Thickness = 1, ApplyStrokeMode = Enum.ApplyStrokeMode.Border, Parent = CloseButton})
 
 	CloseButton.Activated:Connect(function()
@@ -2131,20 +2143,21 @@ do
 
 	UIGesture:MakeDraggable(MainFrame, TitleBar)
 
-	NewInstance("Frame", {Size = UDim2.new(1, 0, 0, 1), Position = UDim2.new(0, 0, 0, 36), BackgroundColor3 = Color3.fromRGB(150, 150, 150), BackgroundTransparency = 0.5, BorderSizePixel = 0, Parent = MainFrame})
-	NewInstance("Frame", {Size = UDim2.new(0, 1, 1, -37), Position = UDim2.new(0.28, 0, 0, 37), BackgroundColor3 = Color3.fromRGB(150, 150, 150), BackgroundTransparency = 0.5, BorderSizePixel = 0, Parent = MainFrame})
+	NewInstance("Frame", {Size = UDim2.fromScale(1, 0.0020), Position = UDim2.fromScale(0, 0.0714), BackgroundColor3 = Color3.fromRGB(150, 150, 150), BackgroundTransparency = 0.5, BorderSizePixel = 0, Parent = MainFrame})
+	NewInstance("Frame", {Size = UDim2.fromScale(0.0012, 0.9266), Position = UDim2.fromScale(0.28, 0.0734), BackgroundColor3 = Color3.fromRGB(150, 150, 150), BackgroundTransparency = 0.5, BorderSizePixel = 0, Parent = MainFrame})
 
-	local SidebarBackground = NewInstance("Frame", {Position = UDim2.new(0, 0, 0, 37), Size = UDim2.new(0.28, 0, 1, -37), BackgroundColor3 = Color3.fromRGB(24, 24, 24), BorderSizePixel = 0, Parent = MainFrame})
+	local SidebarBackground = NewInstance("Frame", {Position = UDim2.fromScale(0, 0.0734), Size = UDim2.fromScale(0.28, 0.9266), BackgroundColor3 = Color3.fromRGB(24, 24, 24), BorderSizePixel = 0, Parent = MainFrame})
 	NewInstance("UICorner", {CornerRadius = UDim.new(0, 6), Parent = SidebarBackground})
 
-	local Sidebar = NewInstance("ScrollingFrame", {Position = UDim2.new(0, 0, 0, 77), Size = UDim2.new(0.28, 0, 1, -77), BackgroundTransparency = 1, BorderSizePixel = 0, ScrollBarThickness = 3, CanvasSize = UDim2.new(0, 0, 0, 0), AutomaticCanvasSize = Enum.AutomaticSize.Y, ScrollingDirection = Enum.ScrollingDirection.Y, Parent = MainFrame})
+	local Sidebar = NewInstance("ScrollingFrame", {Position = UDim2.fromScale(0, 0.1528), Size = UDim2.fromScale(0.28, 0.8472), BackgroundTransparency = 1, BorderSizePixel = 0, ScrollBarThickness = 3, CanvasSize = UDim2.new(0, 0, 0, 0), AutomaticCanvasSize = Enum.AutomaticSize.Y, ScrollingDirection = Enum.ScrollingDirection.Y, Parent = MainFrame})
 	NewInstance("UIListLayout", {SortOrder = Enum.SortOrder.LayoutOrder, Padding = UDim.new(0, 4), Parent = Sidebar})
 	NewInstance("UIPadding", {PaddingTop = UDim.new(0, 6), PaddingLeft = UDim.new(0, 6), PaddingRight = UDim.new(0, 6), Parent = Sidebar})
 
-	local SearchBox = NewInstance("TextBox", {Position = UDim2.new(0, 6, 0, 43), Size = UDim2.new(0.28, -12, 0, 28), BackgroundColor3 = Color3.fromRGB(0, 0, 0), BorderSizePixel = 0, Text = "", PlaceholderText = "Search", PlaceholderColor3 = Color3.fromRGB(150, 150, 150), TextColor3 = Color3.fromRGB(255, 255, 255), Font = Enum.Font.Gotham, TextSize = 13, TextXAlignment = Enum.TextXAlignment.Left, ClearTextOnFocus = false, Parent = MainFrame})
+	local SearchBox = NewInstance("TextBox", {Position = UDim2.fromScale(0.0072, 0.0853), Size = UDim2.fromScale(0.2656, 0.0556), BackgroundColor3 = Color3.fromRGB(0, 0, 0), BorderSizePixel = 0, Text = "", PlaceholderText = "Search", PlaceholderColor3 = Color3.fromRGB(150, 150, 150), TextColor3 = Color3.fromRGB(255, 255, 255), Font = Enum.Font.Gotham, TextScaled = true, TextSize = 13, TextXAlignment = Enum.TextXAlignment.Left, ClearTextOnFocus = false, Parent = MainFrame})
 	NewInstance("UICorner", {CornerRadius = UDim.new(0, 6), Parent = SearchBox})
 	local SearchStroke = NewInstance("UIStroke", {Color = Color3.fromRGB(150, 150, 150), Thickness = 1, ApplyStrokeMode = Enum.ApplyStrokeMode.Border, Parent = SearchBox})
-	NewInstance("UIPadding", {PaddingLeft = UDim.new(0, 13), PaddingRight = UDim.new(0, 13), Parent = SearchBox})
+	NewInstance("UITextSizeConstraint", {MaxTextSize = 13, Parent = SearchBox})
+	NewInstance("UIPadding", {PaddingLeft = UDim.new(0.0156, 0), PaddingRight = UDim.new(0.0156, 0), Parent = SearchBox})
 
 	SearchBox.Focused:Connect(function()
 		TweenService:Create(SearchStroke, TweenInfo.new(1.2), {Color = Color3.fromRGB(173, 216, 255)}):Play()
@@ -2154,7 +2167,7 @@ do
 		TweenService:Create(SearchStroke, TweenInfo.new(1.2), {Color = Color3.fromRGB(150, 150, 150)}):Play()
 	end)
 
-	local Content = NewInstance("ScrollingFrame", {Position = UDim2.new(0.28, 0, 0, 37), Size = UDim2.new(0.72, 0, 1, -37), BackgroundTransparency = 1, BorderSizePixel = 0, ScrollBarThickness = 3, CanvasSize = UDim2.new(0, 0, 0, 0), AutomaticCanvasSize = Enum.AutomaticSize.Y, ScrollingDirection = Enum.ScrollingDirection.Y, Parent = MainFrame})
+	local Content = NewInstance("ScrollingFrame", {Position = UDim2.fromScale(0.28, 0.0734), Size = UDim2.fromScale(0.72, 0.9266), BackgroundTransparency = 1, BorderSizePixel = 0, ScrollBarThickness = 3, CanvasSize = UDim2.new(0, 0, 0, 0), AutomaticCanvasSize = Enum.AutomaticSize.Y, ScrollingDirection = Enum.ScrollingDirection.Y, Parent = MainFrame})
 	NewInstance("UIListLayout", {SortOrder = Enum.SortOrder.LayoutOrder, Padding = UDim.new(0, 6), Parent = Content})
 	NewInstance("UIPadding", {PaddingTop = UDim.new(0, 8), PaddingLeft = UDim.new(0, 8), PaddingRight = UDim.new(0, 8), PaddingBottom = UDim.new(0, 8), Parent = Content})
 
@@ -2167,15 +2180,16 @@ do
 	end)
 
 	function UI.Settings.AddTab(Config)
-		local TabButton = NewInstance("TextButton", {Size = UDim2.new(1, 0, 0, 34), BackgroundColor3 = Color3.fromRGB(32, 32, 32), BackgroundTransparency = 1, BorderSizePixel = 0, AutoButtonColor = false, Text = "", Parent = Sidebar})
+		local TabButton = NewInstance("TextButton", {Size = UDim2.fromScale(1, 0.0796), BackgroundColor3 = Color3.fromRGB(32, 32, 32), BackgroundTransparency = 1, BorderSizePixel = 0, AutoButtonColor = false, Text = "", Parent = Sidebar})
 		NewInstance("UICorner", {CornerRadius = UDim.new(0, 8), Parent = TabButton})
 
-		local Indicator = NewInstance("Frame", {AnchorPoint = Vector2.new(0, 0.5), Position = UDim2.new(0, 0, 0.5, 0), Size = UDim2.new(0, 4, 0, 18), BackgroundColor3 = Color3.fromRGB(90, 150, 255), BackgroundTransparency = 1, BorderSizePixel = 0, Parent = TabButton})
+		local Indicator = NewInstance("Frame", {AnchorPoint = Vector2.new(0, 0.5), Position = UDim2.new(0, 0, 0.5, 0), Size = UDim2.fromScale(0.0172, 0.4216), BackgroundColor3 = Color3.fromRGB(90, 150, 255), BackgroundTransparency = 1, BorderSizePixel = 0, Parent = TabButton})
 		NewInstance("UICorner", {CornerRadius = UDim.new(1, 0), Parent = Indicator})
 
-		local IconLabel = NewInstance("ImageLabel", {AnchorPoint = Vector2.new(0, 0.5), Position = UDim2.new(0, 14, 0.5, 0), Size = UDim2.new(0, 18, 0, 18), BackgroundTransparency = 1, Image = Config.Icon and Config.Icon.Deselected or "", Visible = false, Parent = TabButton})
+		local IconLabel = NewInstance("ImageLabel", {AnchorPoint = Vector2.new(0, 0.5), Position = UDim2.fromScale(0.0601, 0.5), Size = UDim2.fromScale(0.0773, 0.4216), BackgroundTransparency = 1, Image = Config.Icon and Config.Icon.Deselected or "", Visible = false, Parent = TabButton})
 
-		local TabLabel = NewInstance("TextLabel", {Size = UDim2.new(1, -14, 1, 0), Position = UDim2.new(0, 14, 0, 0), BackgroundTransparency = 1, Text = Config.Name or "", TextColor3 = Color3.fromRGB(190, 190, 190), Font = Enum.Font.Gotham, TextSize = 14, TextXAlignment = Enum.TextXAlignment.Left, Parent = TabButton})
+		local TabLabel = NewInstance("TextLabel", {Size = UDim2.fromScale(0.9399, 1), Position = UDim2.fromScale(0.0601, 0), BackgroundTransparency = 1, Text = Config.Name or "", TextColor3 = Color3.fromRGB(190, 190, 190), Font = Enum.Font.Gotham, TextScaled = true, TextSize = 14, TextXAlignment = Enum.TextXAlignment.Left, Parent = TabButton})
+		NewInstance("UITextSizeConstraint", {MaxTextSize = 14, Parent = TabLabel})
 
 		local TabContent = NewInstance("Frame", {Size = UDim2.new(1, 0, 0, 0), AutomaticSize = Enum.AutomaticSize.Y, BackgroundTransparency = 1, Visible = false, Parent = Content})
 		NewInstance("UIListLayout", {SortOrder = Enum.SortOrder.LayoutOrder, Padding = UDim.new(0, 6), HorizontalAlignment = Enum.HorizontalAlignment.Center, Parent = TabContent})
@@ -2202,8 +2216,8 @@ do
 
 				if DeselectedValid or SelectedValid then
 					IconLabel.Visible = true
-					TabLabel.Position = UDim2.new(0, 38, 0, 0)
-					TabLabel.Size = UDim2.new(1, -38, 1, 0)
+					TabLabel.Position = UDim2.fromScale(0.1631, 0)
+					TabLabel.Size = UDim2.fromScale(0.8369, 1)
 
 					if Tab.Selected and SelectedValid then
 						IconLabel.Image = Config.Icon.Selected
@@ -2255,27 +2269,30 @@ end
 
 --[[ UIScale ]]--
 do
-	local Panel = NewInstance("Frame", {AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.5), Size = UDim2.new(0, 280, 0, 130), BackgroundColor3 = Color3.fromRGB(0, 0, 0), BorderSizePixel = 0, ClipsDescendants = true, Visible = false, Parent = ScreenGui})
+	local Panel = NewInstance("Frame", {AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.5), Size = UDim2.fromScale(0.35, 0.35), BackgroundColor3 = Color3.fromRGB(0, 0, 0), BorderSizePixel = 0, ClipsDescendants = true, Visible = false, Parent = ScreenGui2})
+	NewInstance("UIAspectRatioConstraint", {AspectRatio = 280 / 130, Parent = Panel})
 	NewInstance("UICorner", {CornerRadius = UDim.new(0, 6), Parent = Panel})
 	NewInstance("UIStroke", {Color = Color3.fromRGB(255, 255, 255), Thickness = 1, ApplyStrokeMode = Enum.ApplyStrokeMode.Border, Parent = Panel})
 
-	local TitleBar = NewInstance("Frame", {Size = UDim2.new(1, 0, 0, 36), BackgroundColor3 = Color3.fromRGB(0, 0, 0), BorderSizePixel = 0, Parent = Panel})
+	local TitleBar = NewInstance("Frame", {Size = UDim2.fromScale(1, 0.2769), BackgroundColor3 = Color3.fromRGB(0, 0, 0), BorderSizePixel = 0, Parent = Panel})
 	NewInstance("UICorner", {CornerRadius = UDim.new(0, 6), Parent = TitleBar})
-	NewInstance("TextLabel", {Size = UDim2.new(1, -46, 1, 0), Position = UDim2.new(0, 12, 0, 0), BackgroundTransparency = 1, Text = "UIScaler", TextColor3 = Color3.fromRGB(255, 255, 255), Font = Enum.Font.GothamBold, TextSize = 15, TextXAlignment = Enum.TextXAlignment.Left, Parent = TitleBar})
+	NewInstance("UITextSizeConstraint", {MaxTextSize = 15, Parent = NewInstance("TextLabel", {Size = UDim2.fromScale(0.8357, 1), Position = UDim2.fromScale(0.0429, 0), BackgroundTransparency = 1, Text = "UIScaler", TextColor3 = Color3.fromRGB(255, 255, 255), Font = Enum.Font.GothamBold, TextScaled = true, TextSize = 15, TextXAlignment = Enum.TextXAlignment.Left, Parent = TitleBar})})
 
-	local CloseButton = NewInstance("TextButton", {AnchorPoint = Vector2.new(1, 0.5), Size = UDim2.new(0, 24, 0, 24), Position = UDim2.new(1, -8, 0.5, 0), BackgroundColor3 = Color3.fromRGB(32, 32, 32), BorderSizePixel = 0, AutoButtonColor = false, Text = "X", TextColor3 = Color3.fromRGB(255, 255, 255), Font = Enum.Font.Nunito, TextSize = 25, Parent = TitleBar})
+	local CloseButton = NewInstance("TextButton", {AnchorPoint = Vector2.new(1, 0.5), Size = UDim2.fromScale(0.0857, 0.6667), Position = UDim2.fromScale(0.9714, 0.5), BackgroundColor3 = Color3.fromRGB(32, 32, 32), BorderSizePixel = 0, AutoButtonColor = false, Text = "X", TextColor3 = Color3.fromRGB(255, 255, 255), Font = Enum.Font.Nunito, TextScaled = true, TextSize = 25, Parent = TitleBar})
 	NewInstance("UICorner", {CornerRadius = UDim.new(0, 6), Parent = CloseButton})
+	NewInstance("UITextSizeConstraint", {MaxTextSize = 25, Parent = CloseButton})
 	local CloseStroke = NewInstance("UIStroke", {Color = Color3.fromRGB(150, 150, 150), Thickness = 1, ApplyStrokeMode = Enum.ApplyStrokeMode.Border, Parent = CloseButton})
 
-	NewInstance("Frame", {Size = UDim2.new(1, 0, 0, 1), Position = UDim2.new(0, 0, 0, 36), BackgroundColor3 = Color3.fromRGB(150, 150, 150), BackgroundTransparency = 0.5, BorderSizePixel = 0, Parent = Panel})
+	NewInstance("Frame", {Size = UDim2.new(1, 0, 0, 1), Position = UDim2.fromScale(0, 0.2769), BackgroundColor3 = Color3.fromRGB(150, 150, 150), BackgroundTransparency = 0.5, BorderSizePixel = 0, Parent = Panel})
 
-	local Track = NewInstance("CanvasGroup", {AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.new(0.5, 0, 0, 83), Size = UDim2.new(1, -32, 0, 22), BackgroundColor3 = Color3.fromRGB(0, 0, 0), BorderSizePixel = 0, Parent = Panel})
+	local Track = NewInstance("CanvasGroup", {AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.6385), Size = UDim2.fromScale(0.8857, 0.1692), BackgroundColor3 = Color3.fromRGB(0, 0, 0), BorderSizePixel = 0, Parent = Panel})
 	NewInstance("UICorner", {CornerRadius = UDim.new(1, 0), Parent = Track})
 	local TrackStroke = NewInstance("UIStroke", {Color = Color3.fromRGB(150, 150, 150), Thickness = 1, ApplyStrokeMode = Enum.ApplyStrokeMode.Border, Parent = Track})
 
 	local Fill = NewInstance("Frame", {Size = UDim2.new(0, 0, 1, 0), BackgroundColor3 = Color3.fromRGB(90, 150, 255), BorderSizePixel = 0, ZIndex = 2, Parent = Track})
 
-	local ValueLabel = NewInstance("TextLabel", {Size = UDim2.new(1, 0, 1, 0), BackgroundTransparency = 1, Text = "", TextColor3 = Color3.fromRGB(255, 255, 255), Font = Enum.Font.GothamBold, TextSize = 13, ZIndex = 4, Parent = Track})
+	local ValueLabel = NewInstance("TextLabel", {Size = UDim2.new(1, 0, 1, 0), BackgroundTransparency = 1, Text = "", TextColor3 = Color3.fromRGB(255, 255, 255), Font = Enum.Font.GothamBold, TextScaled = true, TextSize = 13, ZIndex = 4, Parent = Track})
+	NewInstance("UITextSizeConstraint", {MaxTextSize = 13, Parent = ValueLabel})
 
 	local IsDragging = false
 
