@@ -2173,16 +2173,16 @@ do
 	end)
 
 	function UI.Settings.AddTab(Config)
-		local TabButton = NewInstance("TextButton", {Size = UDim2.fromScale(1, 0.0796), BackgroundColor3 = Color3.fromRGB(32, 32, 32), BackgroundTransparency = 1, BorderSizePixel = 0, AutoButtonColor = false, Text = "", Parent = Sidebar})
+		local TabButton = NewInstance("TextButton", {Size = UDim2.fromScale(1, 0.1035), BackgroundColor3 = Color3.fromRGB(32, 32, 32), BackgroundTransparency = 1, BorderSizePixel = 0, AutoButtonColor = false, Text = "", Parent = Sidebar})
 		NewInstance("UICorner", {CornerRadius = UDim.new(0, 8), Parent = TabButton})
 
-		local Indicator = NewInstance("Frame", {AnchorPoint = Vector2.new(0, 0.5), Position = UDim2.new(0, 0, 0.5, 0), Size = UDim2.fromScale(0.0172, 0.4216), BackgroundColor3 = Color3.fromRGB(90, 150, 255), BackgroundTransparency = 1, BorderSizePixel = 0, Parent = TabButton})
+		local Indicator = NewInstance("Frame", {AnchorPoint = Vector2.new(0, 0.5), Position = UDim2.new(0, 0, 0.5, 0), Size = UDim2.fromScale(0.0224, 0.4216), BackgroundColor3 = Color3.fromRGB(90, 150, 255), BackgroundTransparency = 1, BorderSizePixel = 0, Parent = TabButton})
 		NewInstance("UICorner", {CornerRadius = UDim.new(1, 0), Parent = Indicator})
 
-		local IconLabel = NewInstance("ImageLabel", {AnchorPoint = Vector2.new(0, 0.5), Position = UDim2.fromScale(0.0601, 0.5), Size = UDim2.fromScale(0.0773, 0.4216), BackgroundTransparency = 1, Image = Config.Icon and Config.Icon.Deselected or "", Visible = false, Parent = TabButton})
+		local IconLabel = NewInstance("ImageLabel", {AnchorPoint = Vector2.new(0, 0.5), Position = UDim2.fromScale(0.0601, 0.5), Size = UDim2.fromScale(0.1005, 0.4216), BackgroundTransparency = 1, Image = Config.Icon and Config.Icon.Deselected or "", Visible = false, Parent = TabButton})
 
-		local TabLabel = NewInstance("TextLabel", {Size = UDim2.fromScale(0.9399, 1), Position = UDim2.fromScale(0.0601, 0), BackgroundTransparency = 1, Text = Config.Name or "", TextColor3 = Color3.fromRGB(190, 190, 190), Font = Enum.Font.Gotham, TextScaled = true, TextSize = 14, TextXAlignment = Enum.TextXAlignment.Left, Parent = TabButton})
-		NewInstance("UITextSizeConstraint", {MaxTextSize = 14, Parent = TabLabel})
+		local TabLabel = NewInstance("TextLabel", {Size = UDim2.fromScale(0.9399, 1), Position = UDim2.fromScale(0.0601, 0), BackgroundTransparency = 1, Text = Config.Name or "", TextColor3 = Color3.fromRGB(190, 190, 190), Font = Enum.Font.Gotham, TextScaled = true, TextSize = 18, TextXAlignment = Enum.TextXAlignment.Left, Parent = TabButton})
+		NewInstance("UITextSizeConstraint", {MaxTextSize = 18, Parent = TabLabel})
 
 		local TabContent = NewInstance("Frame", {Size = UDim2.new(1, 0, 0, 0), AutomaticSize = Enum.AutomaticSize.Y, BackgroundTransparency = 1, Visible = false, Parent = Content})
 		NewInstance("UIListLayout", {SortOrder = Enum.SortOrder.LayoutOrder, Padding = UDim.new(0, 6), HorizontalAlignment = Enum.HorizontalAlignment.Center, Parent = TabContent})
@@ -2209,8 +2209,8 @@ do
 
 				if DeselectedValid or SelectedValid then
 					IconLabel.Visible = true
-					TabLabel.Position = UDim2.fromScale(0.1631, 0)
-					TabLabel.Size = UDim2.fromScale(0.8369, 1)
+					TabLabel.Position = UDim2.fromScale(0.1863, 0)
+					TabLabel.Size = UDim2.fromScale(0.8137, 1)
 
 					if Tab.Selected and SelectedValid then
 						IconLabel.Image = Config.Icon.Selected
@@ -2263,22 +2263,22 @@ end
 --[[ UIScale ]]--
 do
 	local Panel = NewInstance("Frame", {AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.5), Size = UDim2.fromScale(0.35, 0.35), BackgroundColor3 = Color3.fromRGB(0, 0, 0), BorderSizePixel = 0, ClipsDescendants = true, Visible = false, Parent = ScreenGui2})
-	NewInstance("UIAspectRatioConstraint", {AspectRatio = 280 / 130, Parent = Panel})
+	NewInstance("UIAspectRatioConstraint", {AspectRatio = 280 / 104, Parent = Panel})
 	NewInstance("UICorner", {CornerRadius = UDim.new(0, 6), Parent = Panel})
 	NewInstance("UIStroke", {Color = Color3.fromRGB(255, 255, 255), Thickness = 1, ApplyStrokeMode = Enum.ApplyStrokeMode.Border, Parent = Panel})
 
-	local TitleBar = NewInstance("Frame", {Size = UDim2.fromScale(1, 0.2769), BackgroundColor3 = Color3.fromRGB(0, 0, 0), BorderSizePixel = 0, Parent = Panel})
+	local TitleBar = NewInstance("Frame", {Size = UDim2.fromScale(1, 0.3462), BackgroundColor3 = Color3.fromRGB(0, 0, 0), BorderSizePixel = 0, Parent = Panel})
 	NewInstance("UICorner", {CornerRadius = UDim.new(0, 6), Parent = TitleBar})
 	NewInstance("UITextSizeConstraint", {MaxTextSize = 15, Parent = NewInstance("TextLabel", {Size = UDim2.fromScale(0.8357, 1), Position = UDim2.fromScale(0.0429, 0), BackgroundTransparency = 1, Text = "UIScaler", TextColor3 = Color3.fromRGB(255, 255, 255), Font = Enum.Font.GothamBold, TextScaled = true, TextSize = 15, TextXAlignment = Enum.TextXAlignment.Left, Parent = TitleBar})})
 
-	local CloseButton = NewInstance("TextButton", {AnchorPoint = Vector2.new(1, 0.5), Size = UDim2.fromScale(0.0857, 0.6667), Position = UDim2.fromScale(0.9714, 0.5), BackgroundColor3 = Color3.fromRGB(32, 32, 32), BorderSizePixel = 0, AutoButtonColor = false, Text = "X", TextColor3 = Color3.fromRGB(255, 255, 255), Font = Enum.Font.Nunito, TextScaled = true, TextSize = 25, Parent = TitleBar})
+	local CloseButton = NewInstance("TextButton", {AnchorPoint = Vector2.new(1, 0.5), Size = UDim2.fromScale(0.0571, 0.4444), Position = UDim2.fromScale(0.9714, 0.5), BackgroundColor3 = Color3.fromRGB(32, 32, 32), BorderSizePixel = 0, AutoButtonColor = false, Text = "X", TextColor3 = Color3.fromRGB(255, 255, 255), Font = Enum.Font.Nunito, TextScaled = true, TextSize = 25, Parent = TitleBar})
 	NewInstance("UICorner", {CornerRadius = UDim.new(0, 6), Parent = CloseButton})
 	NewInstance("UITextSizeConstraint", {MaxTextSize = 25, Parent = CloseButton})
 	local CloseStroke = NewInstance("UIStroke", {Color = Color3.fromRGB(150, 150, 150), Thickness = 1, ApplyStrokeMode = Enum.ApplyStrokeMode.Border, Parent = CloseButton})
 
-	NewInstance("Frame", {Size = UDim2.new(1, 0, 0, 1), Position = UDim2.fromScale(0, 0.2769), BackgroundColor3 = Color3.fromRGB(150, 150, 150), BackgroundTransparency = 0.5, BorderSizePixel = 0, Parent = Panel})
+	NewInstance("Frame", {Size = UDim2.new(1, 0, 0, 1), Position = UDim2.fromScale(0, 0.3462), BackgroundColor3 = Color3.fromRGB(150, 150, 150), BackgroundTransparency = 0.5, BorderSizePixel = 0, Parent = Panel})
 
-	local Track = NewInstance("CanvasGroup", {AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.6385), Size = UDim2.fromScale(0.8857, 0.1692), BackgroundColor3 = Color3.fromRGB(0, 0, 0), BorderSizePixel = 0, Parent = Panel})
+	local Track = NewInstance("CanvasGroup", {AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.5481), Size = UDim2.fromScale(0.8857, 0.2115), BackgroundColor3 = Color3.fromRGB(0, 0, 0), BorderSizePixel = 0, Parent = Panel})
 	NewInstance("UICorner", {CornerRadius = UDim.new(1, 0), Parent = Track})
 	local TrackStroke = NewInstance("UIStroke", {Color = Color3.fromRGB(150, 150, 150), Thickness = 1, ApplyStrokeMode = Enum.ApplyStrokeMode.Border, Parent = Track})
 
@@ -2309,7 +2309,7 @@ do
 	end
 
 	local function CreateStepButton(Text, PositionX, Width)
-		local Button = NewInstance("TextButton", {AnchorPoint = Vector2.new(0, 0.5), Size = UDim2.fromScale(Width, 0.1692), Position = UDim2.fromScale(PositionX, 0.8692), BackgroundColor3 = Color3.fromRGB(32, 32, 32), BorderSizePixel = 0, AutoButtonColor = false, Text = Text, TextColor3 = Color3.fromRGB(255, 255, 255), Font = Enum.Font.GothamBold, TextScaled = true, TextSize = 13, Parent = Panel})
+		local Button = NewInstance("TextButton", {AnchorPoint = Vector2.new(0, 0.5), Size = UDim2.fromScale(Width, 0.2115), Position = UDim2.fromScale(PositionX, 0.8365), BackgroundColor3 = Color3.fromRGB(32, 32, 32), BorderSizePixel = 0, AutoButtonColor = false, Text = Text, TextColor3 = Color3.fromRGB(255, 255, 255), Font = Enum.Font.GothamBold, TextScaled = true, TextSize = 13, Parent = Panel})
 		NewInstance("UICorner", {CornerRadius = UDim.new(0, 6), Parent = Button})
 		NewInstance("UITextSizeConstraint", {MaxTextSize = 13, Parent = Button})
 		NewInstance("UIStroke", {Color = Color3.fromRGB(150, 150, 150), Thickness = 1, ApplyStrokeMode = Enum.ApplyStrokeMode.Border, Parent = Button})
