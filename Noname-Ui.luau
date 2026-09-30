@@ -2128,7 +2128,7 @@ do
 	NewInstance("UICorner", {CornerRadius = UDim.new(0, 6), Parent = TitleBar})
 	NewInstance("UITextSizeConstraint", {MaxTextSize = 15, Parent = NewInstance("TextLabel", {Size = UDim2.fromScale(0.9447, 1), Position = UDim2.fromScale(0.0144, 0), BackgroundTransparency = 1, Text = "Settings", TextColor3 = Color3.fromRGB(255, 255, 255), Font = Enum.Font.GothamBold, TextScaled = true, TextSize = 15, TextXAlignment = Enum.TextXAlignment.Left, Parent = TitleBar})})
 
-	local CloseButton = NewInstance("TextButton", {AnchorPoint = Vector2.new(1, 0.5), Size = UDim2.fromScale(0.0288, 0.6667), Position = UDim2.new(1, 0, 0.5, 0), BackgroundColor3 = Color3.fromRGB(32, 32, 32), BorderSizePixel = 0, AutoButtonColor = false, Text = "X", TextColor3 = Color3.fromRGB(255, 255, 255), Font = Enum.Font.Nunito, TextScaled = true, TextSize = 25, Parent = TitleBar})
+	local CloseButton = NewInstance("TextButton", {AnchorPoint = Vector2.new(1, 0.5), Size = UDim2.fromScale(0.0288, 0.6667), Position = UDim2.fromScale(0.95, 0.5), BackgroundColor3 = Color3.fromRGB(32, 32, 32), BorderSizePixel = 0, AutoButtonColor = false, Text = "X", TextColor3 = Color3.fromRGB(255, 255, 255), Font = Enum.Font.Nunito, TextScaled = true, TextSize = 25, Parent = TitleBar})
 	NewInstance("UICorner", {CornerRadius = UDim.new(0, 6), Parent = CloseButton})
 	NewInstance("UITextSizeConstraint", {MaxTextSize = 25, Parent = CloseButton})
 	local CloseStroke = NewInstance("UIStroke", {Color = Color3.fromRGB(150, 150, 150), Thickness = 1, ApplyStrokeMode = Enum.ApplyStrokeMode.Border, Parent = CloseButton})
@@ -2297,7 +2297,7 @@ do
 	local IsDragging = false
 
 	local function SetValue(NewValue, FireCallback)
-		local Value = tonumber(string.format("%.2f", math.clamp(NewValue, 0.5, 2.5)))
+		local Value = tonumber(string.format("%.2f", math.round(math.clamp(NewValue, 0.5, 2.5) / 0.05) * 0.05))
 		local Alpha = (Value - 0.5) / (2.5 - 0.5)
 		Fill.Size = UDim2.new(Alpha, 0, 1, 0)
 		ValueLabel.Text = string.format("%.2fx", Value)
@@ -2314,6 +2314,29 @@ do
 	function UI.OpenUIScale()
 		Panel.Visible = true
 	end
+
+	local function CreateStepButton(Text, PositionX, Width)
+		local Button = NewInstance("TextButton", {AnchorPoint = Vector2.new(0, 0.5), Size = UDim2.fromScale(Width, 0.1692), Position = UDim2.fromScale(PositionX, 0.8692), BackgroundColor3 = Color3.fromRGB(32, 32, 32), BorderSizePixel = 0, AutoButtonColor = false, Text = Text, TextColor3 = Color3.fromRGB(255, 255, 255), Font = Enum.Font.GothamBold, TextScaled = true, TextSize = 13, Parent = Panel})
+		NewInstance("UICorner", {CornerRadius = UDim.new(0, 6), Parent = Button})
+		NewInstance("UITextSizeConstraint", {MaxTextSize = 13, Parent = Button})
+		NewInstance("UIStroke", {Color = Color3.fromRGB(150, 150, 150), Thickness = 1, ApplyStrokeMode = Enum.ApplyStrokeMode.Border, Parent = Button})
+		return Button
+	end
+
+	CreateStepButton("-", 0.0571, 0.2286).Activated:Connect(function()
+		SetValue(Scale.Scale - 0.05, true)
+		UI.ScaleSliderDragEndFn(Scale.Scale)
+	end)
+
+	CreateStepButton("Reset", 0.3, 0.4).Activated:Connect(function()
+		SetValue(1, true)
+		UI.ScaleSliderDragEndFn(Scale.Scale)
+	end)
+
+	CreateStepButton("+", 0.7143, 0.2286).Activated:Connect(function()
+		SetValue(Scale.Scale + 0.05, true)
+		UI.ScaleSliderDragEndFn(Scale.Scale)
+	end)
 
 	UIGesture:MakePannable(Track, nil, function(Offset, _, Dragging)
 		SetValue(0.5 + (Offset.X / Track.AbsoluteSize.X) * (2.5 - 0.5), true)
