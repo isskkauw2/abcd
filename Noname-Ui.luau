@@ -130,14 +130,7 @@ do
 	local ToggleDrag = UIGesture:MakeDraggable(ToggleButton)
 
 	function UI.SetToggleButtonLocked(Locked)
-		if Locked then
-			if ToggleDrag then
-				ToggleDrag:Disconnect()
-				ToggleDrag = nil
-			end
-		elseif not ToggleDrag then
-			ToggleDrag = UIGesture:MakeDraggable(ToggleButton)
-		end
+		ToggleDrag:SetLocked(Locked)
 	end
 
 	function UI.PlayToggleSpawn()
