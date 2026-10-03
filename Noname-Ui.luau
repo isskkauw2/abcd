@@ -117,17 +117,9 @@ do
 	ToggleButton.Activated:Connect(function()
 		if ToggleBusy then return end
 		ToggleBusy = true
-
-		local TweenPress = TweenService:Create(ToggleButton, TweenInfo.new(0.08, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { Size = UDim2.new(0, 32 * 0.7, 0, 33 * 0.7) })
-		local TweenRelease = TweenService:Create(ToggleButton, TweenInfo.new(0.22, Enum.EasingStyle.Back, Enum.EasingDirection.Out), { Size = UDim2.new(0, 32, 0, 33) })
-
-		TweenPress:Play()
-		TweenPress.Completed:Wait()
-		TweenRelease:Play()
 		if not UI.CmdOpen then
 			UI.CommandBar.Open()
 		end
-		TweenRelease.Completed:Wait()
 		ToggleBusy = false
 	end)
 end
