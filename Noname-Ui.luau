@@ -848,6 +848,15 @@ do
 				NameLabel.Text = LabelOff
 				NameLabel.TextColor3 = Color3.fromRGB(220, 70, 70)
 			end,
+			SetState = function(State)
+				if State then
+					Hud.Show()
+				else
+					Hud.ShowOff()
+					if HasValue and GetExpanded() then SetExpanded(false) end
+					StopFn()
+				end
+			end,
 			Destroy = function()
 				if Frame then Frame:Destroy(); Frame = nil; Hud.Frame = nil end
 				Built = false
