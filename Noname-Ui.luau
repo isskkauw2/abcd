@@ -488,9 +488,9 @@ do
 	local Rows = {}
 	local PickerOpen = false
 
-	local Frame = NewInstance("Frame", {Parent = ScreenGui, Size = UDim2.new(0, 0, 0, 0), Position = UDim2.new(0.5, 0, 0.3, 0), AnchorPoint = Vector2.new(0.5, 0.5), BackgroundTransparency = 1, BorderSizePixel = 0, ClipsDescendants = true, Visible = false, ZIndex = 40})
+	local Frame = NewInstance("Frame", {Parent = ScreenGui, Size = UDim2.new(0, 0, 0, 0), Position = UDim2.new(0.5, 0, 0, 24), AnchorPoint = Vector2.new(0.5, 0), BackgroundTransparency = 1, BorderSizePixel = 0, ClipsDescendants = true, Visible = false, ZIndex = 40})
 
-	local Shell = NewInstance("Frame", {Parent = Frame, Size = UDim2.new(1, 0, 1, 0), BackgroundColor3 = Color3.fromRGB(13, 13, 15), BackgroundTransparency = 0.04, BorderSizePixel = 0, ZIndex = 40})
+	local Shell = NewInstance("Frame", {Parent = Frame, Size = UDim2.new(1, 0, 1, 0), BackgroundColor3 = Color3.fromRGB(13, 13, 15), BackgroundTransparency = 0.3, BorderSizePixel = 0, ZIndex = 40})
 	NewInstance("UICorner", { Parent = Shell, CornerRadius = UDim.new(0, 14) })
 	NewInstance("UIGradient", {Parent = Shell, Rotation = 90, Color = ColorSequence.new({ColorSequenceKeypoint.new(0, Color3.fromRGB(20, 20, 23)), ColorSequenceKeypoint.new(1, Color3.fromRGB(10, 10, 12))})})
 	local PickerOutline = NewInstance("UIStroke", {Parent = Shell, ApplyStrokeMode = Enum.ApplyStrokeMode.Border, Color = Color3.fromRGB(235, 235, 240), Thickness = 1.25, Transparency = 0.58})
@@ -510,32 +510,44 @@ do
 
 	NewInstance("TextLabel", {Parent = Frame, Size = UDim2.new(1, -70, 0, 26), Position = UDim2.new(0, 20, 0, 14), BackgroundTransparency = 1, Text = "Select One", TextColor3 = Color3.fromRGB(246, 246, 248), TextSize = 15, TextXAlignment = Enum.TextXAlignment.Left, TextYAlignment = Enum.TextYAlignment.Center, FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Bold, Enum.FontStyle.Normal), ZIndex = 42})
 
-	local Content = NewInstance("Frame", {Parent = Frame, Size = UDim2.new(1, -32, 1, -62), Position = UDim2.new(0, 16, 0, 46), BackgroundTransparency = 1, BorderSizePixel = 0, ZIndex = 41})
-	NewInstance("UIListLayout", {Parent = Content, Padding = UDim.new(0, 6), HorizontalAlignment = Enum.HorizontalAlignment.Center, VerticalAlignment = Enum.VerticalAlignment.Top, SortOrder = Enum.SortOrder.LayoutOrder})
+	NewInstance("UIGradient", {Parent = NewInstance("Frame", {Parent = Frame, Size = UDim2.new(1, -40, 0, 1), Position = UDim2.new(0, 20, 0, 50), BackgroundColor3 = Color3.fromRGB(235, 235, 240), BackgroundTransparency = 0.6, BorderSizePixel = 0, ZIndex = 42}), Transparency = NumberSequence.new({NumberSequenceKeypoint.new(0, 1), NumberSequenceKeypoint.new(0.5, 0), NumberSequenceKeypoint.new(1, 1)})})
+
+	local Content = NewInstance("Frame", {Parent = Frame, Size = UDim2.new(1, -32, 1, -76), Position = UDim2.new(0, 16, 0, 60), BackgroundTransparency = 1, BorderSizePixel = 0, ZIndex = 41})
 
 	for Index = 1, 4 do
-		local Row = NewInstance("Frame", {Parent = Content, Size = UDim2.new(1, 0, 0, 44), BackgroundTransparency = 1, BorderSizePixel = 0, LayoutOrder = Index, Visible = false, ZIndex = 41})
+		local Card = NewInstance("Frame", {Parent = Content, Size = UDim2.new(0.5, -4, 0, 52), BackgroundColor3 = Color3.fromRGB(24, 24, 27), BackgroundTransparency = 0.35, BorderSizePixel = 0, Visible = false, ZIndex = 41})
+		NewInstance("UICorner", { Parent = Card, CornerRadius = UDim.new(0, 10) })
+		local CardStroke = NewInstance("UIStroke", {Parent = Card, ApplyStrokeMode = Enum.ApplyStrokeMode.Border, Color = Color3.fromRGB(225, 225, 232), Thickness = 1, Transparency = 0.8})
 
-		local RowShell = NewInstance("Frame", {Parent = Row, Size = UDim2.new(1, 0, 1, 0), BackgroundColor3 = Color3.fromRGB(24, 24, 27), BackgroundTransparency = 0.2, BorderSizePixel = 0, ZIndex = 41})
-		NewInstance("UICorner", { Parent = RowShell, CornerRadius = UDim.new(0, 8) })
-		local RowStroke = NewInstance("UIStroke", {Parent = RowShell, ApplyStrokeMode = Enum.ApplyStrokeMode.Border, Color = Color3.fromRGB(225, 225, 232), Thickness = 1, Transparency = 0.76})
+		local Glow = NewInstance("Frame", {Parent = Card, Size = UDim2.new(1, 0, 1, 0), BackgroundColor3 = Color3.fromRGB(245, 245, 248), BackgroundTransparency = 0.88, BorderSizePixel = 0, ZIndex = 41})
+		NewInstance("UICorner", { Parent = Glow, CornerRadius = UDim.new(0, 10) })
+		NewInstance("UIGradient", {Parent = Glow, Transparency = NumberSequence.new({NumberSequenceKeypoint.new(0, 0), NumberSequenceKeypoint.new(1, 1)})})
 
-		local RowLine = NewInstance("Frame", {Parent = RowShell, Size = UDim2.new(0, 2, 1, -16), Position = UDim2.new(0, 7, 0.5, 0), AnchorPoint = Vector2.new(0, 0.5), BackgroundColor3 = Color3.fromRGB(245, 245, 248), BackgroundTransparency = 0.42, BorderSizePixel = 0, ZIndex = 42})
-		NewInstance("UICorner", { Parent = RowLine, CornerRadius = UDim.new(0, 3) })
+		local Bar = NewInstance("Frame", {Parent = Card, Size = UDim2.new(0, 3, 1, -20), Position = UDim2.new(0, 9, 0.5, 0), AnchorPoint = Vector2.new(0, 0.5), BackgroundColor3 = Color3.fromRGB(245, 245, 248), BackgroundTransparency = 0.2, BorderSizePixel = 0, ZIndex = 42})
+		NewInstance("UICorner", { Parent = Bar, CornerRadius = UDim.new(0, 3) })
 
-		local TitleLabel = NewInstance("TextLabel", {Parent = RowShell, Size = UDim2.new(1, -30, 0, 20), Position = UDim2.new(0, 18, 0, 5), BackgroundTransparency = 1, Text = "", TextColor3 = Color3.fromRGB(232, 232, 236), FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Bold, Enum.FontStyle.Normal), TextSize = 14, TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false, ClipsDescendants = true, ZIndex = 43})
+		local TitleLabel = NewInstance("TextLabel", {Parent = Card, Size = UDim2.new(1, -26, 0, 20), Position = UDim2.new(0, 20, 0, 9), BackgroundTransparency = 1, Text = "", TextColor3 = Color3.fromRGB(232, 232, 236), FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Bold, Enum.FontStyle.Normal), TextSize = 14, TextXAlignment = Enum.TextXAlignment.Left, TextYAlignment = Enum.TextYAlignment.Center, TextWrapped = false, TextTruncate = Enum.TextTruncate.AtEnd, ZIndex = 43})
 
-		local DescLabel = NewInstance("TextLabel", {Parent = RowShell, Size = UDim2.new(1, -30, 0, 16), Position = UDim2.new(0, 18, 0, 23), BackgroundTransparency = 1, Text = "", TextColor3 = Color3.fromRGB(150, 150, 158), FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Medium, Enum.FontStyle.Normal), TextSize = 12, TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false, ClipsDescendants = true, ZIndex = 43})
+		local DescLabel = NewInstance("TextLabel", {Parent = Card, Size = UDim2.new(1, -26, 0, 14), Position = UDim2.new(0, 20, 0, 29), BackgroundTransparency = 1, Text = "", TextColor3 = Color3.fromRGB(150, 150, 158), TextTransparency = 0.35, FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Medium, Enum.FontStyle.Normal), TextSize = 11, TextXAlignment = Enum.TextXAlignment.Left, TextYAlignment = Enum.TextYAlignment.Center, TextWrapped = false, TextTruncate = Enum.TextTruncate.AtEnd, ZIndex = 43})
 
-		local Button = NewInstance("TextButton", {Parent = Row, Size = UDim2.new(1, 0, 1, 0), BackgroundTransparency = 1, BorderSizePixel = 0, AutoButtonColor = false, Text = "", ZIndex = 44})
+		local Button = NewInstance("TextButton", {Parent = Card, Size = UDim2.new(1, 0, 1, 0), BackgroundTransparency = 1, BorderSizePixel = 0, AutoButtonColor = false, Text = "", ZIndex = 44})
 
 		UIGesture:MakeHoverable(Button, nil, function(Active)
-			TweenService:Create(RowShell, TweenInfo.new(0.12, Enum.EasingStyle.Sine, Enum.EasingDirection.Out), {
-				BackgroundColor3 = Active and Color3.fromRGB(38, 38, 43) or Color3.fromRGB(24, 24, 27),
-				BackgroundTransparency = Active and 0.08 or 0.2,
+			TweenService:Create(Card, TweenInfo.new(0.12, Enum.EasingStyle.Sine, Enum.EasingDirection.Out), {
+				BackgroundColor3 = Active and Color3.fromRGB(40, 40, 46) or Color3.fromRGB(24, 24, 27),
+				BackgroundTransparency = Active and 0.15 or 0.35,
 			}):Play()
-			TweenService:Create(RowStroke, TweenInfo.new(0.12, Enum.EasingStyle.Sine, Enum.EasingDirection.Out), { Transparency = Active and 0.28 or 0.76 }):Play()
-			TweenService:Create(RowLine, TweenInfo.new(0.12, Enum.EasingStyle.Sine, Enum.EasingDirection.Out), { BackgroundTransparency = Active and 0.05 or 0.42 }):Play()
+			TweenService:Create(CardStroke, TweenInfo.new(0.12, Enum.EasingStyle.Sine, Enum.EasingDirection.Out), {
+				Color = Active and Rows[Index].Accent or Color3.fromRGB(225, 225, 232),
+				Transparency = Active and 0.35 or 0.8,
+			}):Play()
+			TweenService:Create(Bar, TweenInfo.new(0.12, Enum.EasingStyle.Sine, Enum.EasingDirection.Out), {
+				BackgroundTransparency = Active and 0 or 0.2,
+				Size = Active and UDim2.new(0, 3, 1, -14) or UDim2.new(0, 3, 1, -20),
+			}):Play()
+			TweenService:Create(Glow, TweenInfo.new(0.12, Enum.EasingStyle.Sine, Enum.EasingDirection.Out), { BackgroundTransparency = Active and 0.72 or 0.88 }):Play()
+			TweenService:Create(TitleLabel, TweenInfo.new(0.12, Enum.EasingStyle.Sine, Enum.EasingDirection.Out), { TextColor3 = Active and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(232, 232, 236) }):Play()
+			TweenService:Create(DescLabel, TweenInfo.new(0.12, Enum.EasingStyle.Sine, Enum.EasingDirection.Out), { TextTransparency = Active and 0.15 or 0.35 }):Play()
 		end)
 
 		Button.Activated:Connect(function()
@@ -547,22 +559,29 @@ do
 		end)
 
 		Rows[Index] = {
-			Row = Row,
-			Shell = RowShell,
-			Stroke = RowStroke,
-			Line = RowLine,
+			Card = Card,
+			Stroke = CardStroke,
+			Glow = Glow,
+			Bar = Bar,
 			Title = TitleLabel,
 			Desc = DescLabel,
 		}
 	end
 
-	local CloseButton = NewInstance("TextButton", {Parent = Frame, Size = UDim2.new(0, 26, 0, 26), Position = UDim2.new(1, -14, 0, 14), AnchorPoint = Vector2.new(1, 0), BackgroundColor3 = Color3.fromRGB(31, 31, 35), BackgroundTransparency = 0.08, BorderSizePixel = 0, AutoButtonColor = false, Text = "X", TextColor3 = Color3.fromRGB(196, 196, 204), TextSize = 14, FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Bold, Enum.FontStyle.Normal), ZIndex = 42})
+	local CloseButton = NewInstance("TextButton", {Parent = Frame, Size = UDim2.new(0, 84, 0, 26), Position = UDim2.new(1, -14, 0, 14), AnchorPoint = Vector2.new(1, 0), BackgroundColor3 = Color3.fromRGB(31, 31, 35), BackgroundTransparency = 0.08, BorderSizePixel = 0, AutoButtonColor = false, Text = "Close", TextColor3 = Color3.fromRGB(196, 196, 204), TextSize = 18, FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Bold, Enum.FontStyle.Normal), ZIndex = 42})
 	NewInstance("UICorner", { Parent = CloseButton, CornerRadius = UDim.new(0, 7) })
+	local CloseStroke = NewInstance("UIStroke", {Parent = CloseButton, ApplyStrokeMode = Enum.ApplyStrokeMode.Border, Color = Color3.fromRGB(255, 255, 255), Thickness = 1, Transparency = 0.85})
 
 	UIGesture:MakeHoverable(CloseButton, nil, function(Active)
-		TweenService:Create(CloseButton, TweenInfo.new(0.12, Enum.EasingStyle.Sine, Enum.EasingDirection.Out), {
-			BackgroundColor3 = Active and Color3.fromRGB(40, 40, 45) or Color3.fromRGB(31, 31, 35),
-			TextColor3 = Active and Color3.fromRGB(245, 245, 248) or Color3.fromRGB(196, 196, 204),
+		TweenService:Create(CloseButton, TweenInfo.new(0.18, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+			BackgroundColor3 = Active and Color3.fromRGB(190, 55, 65) or Color3.fromRGB(31, 31, 35),
+			BackgroundTransparency = Active and 0.02 or 0.08,
+			TextColor3 = Active and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(196, 196, 204),
+			Size = Active and UDim2.new(0, 96, 0, 26) or UDim2.new(0, 84, 0, 26),
+		}):Play()
+		TweenService:Create(CloseStroke, TweenInfo.new(0.18, Enum.EasingStyle.Sine, Enum.EasingDirection.Out), {
+			Color = Active and Color3.fromRGB(255, 120, 130) or Color3.fromRGB(255, 255, 255),
+			Transparency = Active and 0.15 or 0.85,
 		}):Play()
 	end)
 
@@ -570,7 +589,7 @@ do
 
 	local function GetSize()
 		local Scale = math.max(Scale.Scale, 0.01)
-		return UDim2.new(0, math.min(360, math.max(240, math.floor((ScreenGui.AbsoluteSize.X - 40) / Scale + 0.5))), 0, 56 + 50 * Count)
+		return UDim2.new(0, math.min(400, math.max(260, math.floor((ScreenGui.AbsoluteSize.X - 40) / Scale + 0.5))), 0, 68 + 60 * math.ceil(Count / 2))
 	end
 
 	local function Relayout()
@@ -586,33 +605,45 @@ do
 		Count = math.min(#Config, 4)
 
 		for Index = 1, 4 do
-			Rows[Index].Row.Visible = Index <= Count
+			local Row = Rows[Index]
+			Row.Card.Visible = Index <= Count
 
 			if Index <= Count then
 				local HasDesc = Config[Index].Desc ~= nil and Config[Index].Desc ~= ""
+				local Accent = Config[Index].Accent or Color3.fromRGB(245, 245, 248)
 
-				Rows[Index].Fn = Config[Index].Fn
-				Rows[Index].Title.Text = Config[Index].Title
-				Rows[Index].Title.Size = HasDesc and UDim2.new(1, -30, 0, 20) or UDim2.new(1, -30, 0, 24)
-				Rows[Index].Title.Position = HasDesc and UDim2.new(0, 18, 0, 5) or UDim2.new(0, 18, 0.5, 0)
-				Rows[Index].Title.AnchorPoint = HasDesc and Vector2.new(0, 0) or Vector2.new(0, 0.5)
-				Rows[Index].Title.TextSize = HasDesc and 14 or 15
-				Rows[Index].Desc.Text = Config[Index].Desc or ""
-				Rows[Index].Desc.Visible = HasDesc
-				Rows[Index].Line.BackgroundColor3 = Config[Index].Accent or Color3.fromRGB(245, 245, 248)
-				Rows[Index].Line.BackgroundTransparency = 0.42
-				Rows[Index].Shell.BackgroundColor3 = Color3.fromRGB(24, 24, 27)
-				Rows[Index].Shell.BackgroundTransparency = 0.2
-				Rows[Index].Stroke.Transparency = 0.76
+				Row.Fn = Config[Index].Fn
+				Row.Accent = Accent
+				Row.Card.Size = Index == Count and Count % 2 == 1 and UDim2.new(1, 0, 0, 52) or UDim2.new(0.5, -4, 0, 52)
+				Row.Card.Position = UDim2.new(Index % 2 == 0 and 0.5 or 0, Index % 2 == 0 and 4 or 0, 0, math.floor((Index - 1) / 2) * 60)
+				Row.Card.BackgroundColor3 = Color3.fromRGB(24, 24, 27)
+				Row.Card.BackgroundTransparency = 0.35
+				Row.Stroke.Color = Color3.fromRGB(225, 225, 232)
+				Row.Stroke.Transparency = 0.8
+				Row.Glow.BackgroundColor3 = Accent
+				Row.Glow.BackgroundTransparency = 0.88
+				Row.Bar.BackgroundColor3 = Accent
+				Row.Bar.BackgroundTransparency = 0.2
+				Row.Bar.Size = UDim2.new(0, 3, 1, -20)
+				Row.Title.Text = Config[Index].Title
+				Row.Title.TextColor3 = Color3.fromRGB(232, 232, 236)
+				Row.Title.Size = HasDesc and UDim2.new(1, -26, 0, 20) or UDim2.new(1, -26, 0, 24)
+				Row.Title.Position = HasDesc and UDim2.new(0, 20, 0, 9) or UDim2.new(0, 20, 0.5, 0)
+				Row.Title.AnchorPoint = HasDesc and Vector2.new(0, 0) or Vector2.new(0, 0.5)
+				Row.Title.TextSize = HasDesc and 14 or 15
+				Row.Desc.Text = Config[Index].Desc or ""
+				Row.Desc.TextTransparency = 0.35
+				Row.Desc.Visible = HasDesc
 			end
 		end
 
 		local Size = GetSize()
 		PickerOpen = true
 		Frame.Visible = true
+		Frame.Position = UDim2.new(0.5, 0, 0, 6)
 		Frame.Size = UDim2.new(0, Size.X.Offset - 40, 0, Size.Y.Offset - 40)
 		TweenService:Create(PickerOutline, TweenInfo.new(0.108, Enum.EasingStyle.Sine, Enum.EasingDirection.Out), { Transparency = 0.18 }):Play()
-		TweenService:Create(Frame, TweenInfo.new(0.16, Enum.EasingStyle.Back, Enum.EasingDirection.Out), { Size = Size }):Play()
+		TweenService:Create(Frame, TweenInfo.new(0.16, Enum.EasingStyle.Back, Enum.EasingDirection.Out), { Size = Size, Position = UDim2.new(0.5, 0, 0, 24) }):Play()
 	end
 end
 
