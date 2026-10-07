@@ -66,6 +66,10 @@ local UI = {
 UI.CmdOpen = false
 UI.CmdListOpen = false
 
+local Protector = Load("https://ltseverydayyou.github.io/UIprotector.luau", "UIProtector")
+local HuiParent = Protector.huiGrabber()
+UI.Protector = Protector
+
 local function NewInstance(ClassName, Props)
 	local Inst = Instance.new(ClassName)
 
@@ -73,17 +77,10 @@ local function NewInstance(ClassName, Props)
 		Inst[Prop] = Value
 	end
 
-	local Chars = {}
-	for Index = 1, 128 do
-		Chars[Index] = string.char(math.random(128, 255))
-	end
-	Inst.Name = table.concat(Chars)
+	Inst.Name = Protector.randomString()
 
 	if not (Props and Props.Parent) then
-		local Ok, Parent = pcall(function()
-			return (type(gethui) == "function" and gethui()) or cloneref(game:GetService("CoreGui"))
-		end)
-		Inst.Parent = (Ok and Parent) or LocalPlayer:WaitForChild("PlayerGui")
+		Inst.Parent = HuiParent
 	end
 
 	return Inst
@@ -93,6 +90,9 @@ local ScreenGui = NewInstance("ScreenGui", {ResetOnSpawn = false, ZIndexBehavior
 local Scale = NewInstance("UIScale", { Parent = ScreenGui })
 
 local ScreenGui2 = NewInstance("ScreenGui", {ResetOnSpawn = false, ZIndexBehavior = Enum.ZIndexBehavior.Sibling, IgnoreGuiInset = true, DisplayOrder = 2147483647})
+
+ScreenGui.Archivable = false
+ScreenGui2.Archivable = false
 
 --[[ Toggle ]]--
 do
@@ -1281,6 +1281,10 @@ do
 					Key = Input.KeyCode
 					KeyButton.Text = Key.Name
 					Listening = false
+
+					if Config.OnChanged then
+						Config.OnChanged(Key)
+					end
 					TweenService:Create(KeyStroke, TweenInfo.new(0.15), {Color = Color3.fromRGB(150, 150, 150)}):Play()
 				end
 				return
