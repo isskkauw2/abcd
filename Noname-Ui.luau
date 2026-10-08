@@ -97,11 +97,16 @@ ScreenGui2.Archivable = false
 
 --[[ Toggle ]]--
 do
-	local ToggleButton = NewInstance("ImageButton", {Parent = ScreenGui, BackgroundColor3 = Color3.fromRGB(25, 26, 30), BackgroundTransparency = 1, BorderSizePixel = 0, Image = "rbxassetid://128637557669161", ImageTransparency = 0, Position = UDim2.new(0.489, 0, 0.07, 0), Size = UDim2.new(0, 0, 0, 0), Visible = false, ZIndex = 10, AnchorPoint = Vector2.new(0.5, 0.5)})
+do
+	local ToggleButton = NewInstance("ImageButton", {Parent = ScreenGui, BackgroundColor3 = Color3.fromRGB(0, 0, 0), BackgroundTransparency = 0, BorderSizePixel = 0, Image = "", Position = UDim2.new(0.489, 0, 0.07, 0), Size = UDim2.new(0, 0, 0, 0), Visible = false, ZIndex = 10, AnchorPoint = Vector2.new(0.5, 0.5)})
 
 	UI.ToggleButton = ToggleButton
 
 	NewInstance("UICorner", { Parent = ToggleButton, CornerRadius = UDim.new(0.5, 0) })
+
+	local ToggleIcon = NewInstance("ImageLabel", {Parent = ToggleButton, BackgroundTransparency = 1, BorderSizePixel = 0, Image = "rbxassetid://128637557669161", ImageTransparency = 0, Position = UDim2.new(0.5, 0, 0.5, 0), Size = UDim2.new(0.85, 0, 0.85, 0), ZIndex = 11, AnchorPoint = Vector2.new(0.5, 0.5)})
+
+	NewInstance("UICorner", { Parent = ToggleIcon, CornerRadius = UDim.new(0.5, 0) })
 
 	UIGesture:MakeHoverable(ToggleButton, nil, function(Hovering)
 		TweenService:Create(ToggleButton, TweenInfo.new(0.25, Enum.EasingStyle.Sine, Enum.EasingDirection.Out), { Size = Hovering and UDim2.new(0, 35, 0, 35) or UDim2.new(0, 32, 0, 32) }):Play()
@@ -115,7 +120,7 @@ do
 
 	function UI.PlayToggleSpawn()
 		ToggleButton.Visible = true
-		TweenService:Create(ToggleButton, TweenInfo.new(1, Enum.EasingStyle.Elastic, Enum.EasingDirection.Out), { Size = UDim2.new(0, 32, 0, 32), ImageTransparency = 0 }):Play()
+		TweenService:Create(ToggleButton, TweenInfo.new(1, Enum.EasingStyle.Elastic, Enum.EasingDirection.Out), { Size = UDim2.new(0, 32, 0, 32) }):Play()
 		TweenService:Create(ToggleButton, TweenInfo.new(1.5, Enum.EasingStyle.Elastic, Enum.EasingDirection.Out), { Rotation = 720 }):Play()
 	end
 
