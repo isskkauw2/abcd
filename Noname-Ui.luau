@@ -54,6 +54,7 @@ local ContentProvider = Cloneref(game:GetService("ContentProvider"))
 local UIGesture = Load("https://raw.githubusercontent.com/isskkauww/Modules/refs/heads/main/UIGesture.luau", "UIGesture")
 local ToggleBusy = false
 local IsMobile = UserInputService:GetPlatform() == Enum.Platform.Android or UserInputService:GetPlatform() == Enum.Platform.IOS
+local Version = "🔥🔥 Noname v0.0.1 🔥🔥"
 
 local UI = {
 	CommandBar = {},
@@ -96,11 +97,15 @@ ScreenGui2.Archivable = false
 
 --[[ Toggle ]]--
 do
-	local ToggleButton = NewInstance("TextButton", {Parent = ScreenGui, BackgroundColor3 = Color3.fromRGB(46, 46, 47), BackgroundTransparency = 0.14, Position = UDim2.new(0.489, 0, 0.07, 0), Size = UDim2.new(0, 0, 0, 0), Font = Enum.Font.SourceSansBold, Text = "NN", TextColor3 = Color3.new(1, 1, 1), TextSize = 20, TextTransparency = 1, Visible = false, ZIndex = 10, AnchorPoint = Vector2.new(0.5, 0.5)})
+	local ToggleButton = NewInstance("ImageButton", {Parent = ScreenGui, BackgroundColor3 = Color3.fromRGB(25, 26, 30), BackgroundTransparency = 0, BorderSizePixel = 0, Image = "rbxassetid://129507251616834", ImageTransparency = 1, Position = UDim2.new(0.489, 0, 0.07, 0), Size = UDim2.new(0, 0, 0, 0), Visible = false, ZIndex = 10, AnchorPoint = Vector2.new(0.5, 0.5)})
 
 	UI.ToggleButton = ToggleButton
 
 	NewInstance("UICorner", { Parent = ToggleButton, CornerRadius = UDim.new(0.5, 0) })
+
+	UIGesture:MakeHoverable(ToggleButton, nil, function(Hovering)
+		TweenService:Create(ToggleButton, TweenInfo.new(0.25, Enum.EasingStyle.Sine, Enum.EasingDirection.Out), { Size = Hovering and UDim2.new(0, 35, 0, 35) or UDim2.new(0, 32, 0, 32) }):Play()
+	end)
 
 	local ToggleDrag = UIGesture:MakeDraggable(ToggleButton)
 
@@ -110,7 +115,7 @@ do
 
 	function UI.PlayToggleSpawn()
 		ToggleButton.Visible = true
-		TweenService:Create(ToggleButton, TweenInfo.new(1, Enum.EasingStyle.Elastic, Enum.EasingDirection.Out), { Size = UDim2.new(0, 32, 0, 33), TextTransparency = 0 }):Play()
+		TweenService:Create(ToggleButton, TweenInfo.new(1, Enum.EasingStyle.Elastic, Enum.EasingDirection.Out), { Size = UDim2.new(0, 32, 0, 32), ImageTransparency = 0 }):Play()
 		TweenService:Create(ToggleButton, TweenInfo.new(1.5, Enum.EasingStyle.Elastic, Enum.EasingDirection.Out), { Rotation = 720 }):Play()
 	end
 
@@ -125,7 +130,7 @@ do
 end
 
 --[[ CommandBar ]]--
-do
+do -- skidded from Nameless admin command bar UI💀
 	local BarWidth = 520
 	local RowHeight = 38
 	UI.CommandBar.SuggLimit = 5
@@ -139,7 +144,7 @@ do
 
 	NewInstance("TextLabel", {Parent = UI.CommandBar.Frame, Size = UDim2.new(0, 18, 0, 22), Position = UDim2.new(0, 15, 0.5, 0), AnchorPoint = Vector2.new(0, 0.5), BackgroundTransparency = 1, Text = ">", TextColor3 = Color3.fromRGB(255, 255, 255), TextSize = 18, FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Bold, Enum.FontStyle.Normal), ZIndex = 24})
 
-	UI.CommandBar.InputBox = NewInstance("TextBox", {Parent = UI.CommandBar.Frame, Size = UDim2.new(1, -207, 1, 0), Position = UDim2.new(0, 43, 0.5, 0), AnchorPoint = Vector2.new(0, 0.5), BackgroundTransparency = 1, BorderSizePixel = 0, Text = "", TextColor3 = Color3.fromRGB(246, 246, 248), PlaceholderText = "Type a command...", PlaceholderColor3 = Color3.fromRGB(130, 130, 138), FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Medium, Enum.FontStyle.Normal), TextSize = 15, TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false, ClearTextOnFocus = false, ClipsDescendants = true, ZIndex = 23})
+	UI.CommandBar.InputBox = NewInstance("TextBox", {Parent = UI.CommandBar.Frame, Size = UDim2.new(1, -207, 1, 0), Position = UDim2.new(0, 43, 0.5, 0), AnchorPoint = Vector2.new(0, 0.5), BackgroundTransparency = 1, BorderSizePixel = 0, Text = "", TextColor3 = Color3.fromRGB(246, 246, 248), PlaceholderText = Version, PlaceholderColor3 = Color3.fromRGB(130, 130, 138), FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Medium, Enum.FontStyle.Normal), TextSize = 15, TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false, ClearTextOnFocus = false, ClipsDescendants = true, ZIndex = 23})
 
 	UI.CommandBar.Enter = NewInstance("TextButton", {Parent = UI.CommandBar.Frame, Size = UDim2.new(0, 52, 0, 22), Position = UDim2.new(1, -12, 0.5, 0), AnchorPoint = Vector2.new(1, 0.5), BackgroundColor3 = Color3.fromRGB(31, 31, 35), BackgroundTransparency = 0.08, BorderSizePixel = 0, AutoButtonColor = false, Text = "ENTER", TextColor3 = Color3.fromRGB(196, 196, 204), TextSize = 9, FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Bold, Enum.FontStyle.Normal), ZIndex = 24})
 	NewInstance("UICorner", { Parent = UI.CommandBar.Enter, CornerRadius = UDim.new(0, 5) })
