@@ -97,7 +97,6 @@ ScreenGui2.Archivable = false
 
 --[[ Toggle ]]--
 do
-do
 	local ToggleButton = NewInstance("ImageButton", {Parent = ScreenGui, BackgroundColor3 = Color3.fromRGB(0, 0, 0), BackgroundTransparency = 0, BorderSizePixel = 0, Image = "", Position = UDim2.new(0.489, 0, 0.07, 0), Size = UDim2.new(0, 0, 0, 0), Visible = false, ZIndex = 10, AnchorPoint = Vector2.new(0.5, 0.5)})
 
 	UI.ToggleButton = ToggleButton
