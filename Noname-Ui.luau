@@ -1074,18 +1074,15 @@ do
 
 		local ValueLabel = NewInstance("TextLabel", {Size = UDim2.new(1, 0, 1, 0), BackgroundTransparency = 1, Text = "", TextColor3 = Color3.fromRGB(255, 255, 255), Font = Enum.Font.GothamBold, TextSize = 13, ZIndex = 4, Parent = Track})
 
-		local InputBox = NewInstance("TextBox", {AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -12, 0, HasDesc and 44 or 30), Size = UDim2.new(0, 58, 0, 22), BackgroundColor3 = Color3.fromRGB(0, 0, 0), BorderSizePixel = 0, Text = "", TextColor3 = Color3.fromRGB(255, 255, 255), Font = Enum.Font.Gotham, TextSize = 13, ClearTextOnFocus = false, Visible = HasTextbox, Parent = SliderFrame})
-		NewInstance("UICorner", {CornerRadius = UDim.new(0, 6), Parent = InputBox})
-		local InputStroke = NewInstance("UIStroke", {Color = Color3.fromRGB(150, 150, 150), Thickness = 1, ApplyStrokeMode = Enum.ApplyStrokeMode.Border, Parent = InputBox})
-
 		local Value
+		local InputBox
 
 		local function SetValue(NewValue, FireCallback)
 			Value = tonumber(string.format("%.10g", math.clamp(Min + math.floor((NewValue - Min) / Step + 0.5) * Step, Min, Max)))
 			local Alpha = (Value - Min) / (Max - Min)
 			Fill.Size = UDim2.new(Alpha, 0, 1, 0)
 			ValueLabel.Text = tostring(Value)
-			if not InputBox:IsFocused() then
+			if InputBox and not InputBox:IsFocused() then
 				InputBox.Text = tostring(Value)
 			end
 			if FireCallback then
@@ -1106,28 +1103,45 @@ do
 			end
 		end, {LockAxis = "X", Radius = {0, Track.AbsoluteSize.X}, MoveMain = false, ClickToJump = true})
 
-		InputBox.Focused:Connect(function()
-			TweenService:Create(InputStroke, TweenInfo.new(1.2), {Color = Color3.fromRGB(173, 216, 255)}):Play()
-		end)
+		if HasTextbox then
+			InputBox = NewInstance("TextBox", {AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -12, 0, HasDesc and 44 or 30), Size = UDim2.new(0, 58, 0, 22), BackgroundColor3 = Color3.fromRGB(0, 0, 0), BorderSizePixel = 0, Text = "", TextColor3 = Color3.fromRGB(255, 255, 255), Font = Enum.Font.Gotham, TextSize = 13, ClearTextOnFocus = false, Parent = SliderFrame})
+			NewInstance("UICorner", {CornerRadius = UDim.new(0, 6), Parent = InputBox})
+			local InputStroke = NewInstance("UIStroke", {Color = Color3.fromRGB(150, 150, 150), Thickness = 1, ApplyStrokeMode = Enum.ApplyStrokeMode.Border, Parent = InputBox})
 
-		InputBox.FocusLost:Connect(function()
-			InputBox.Text = tostring(Value)
-			TweenService:Create(InputStroke, TweenInfo.new(1.2), {Color = Color3.fromRGB(150, 150, 150)}):Play()
-		end)
+			InputBox.Focused:Connect(function()
+				TweenService:Create(InputStroke, TweenInfo.new(1.2), {Color = Color3.fromRGB(173, 216, 255)}):Play()
+			end)
 
-		InputBox:GetPropertyChangedSignal("Text"):Connect(function()
-			local NewValue = tonumber(InputBox.Text)
-			local Steps = NewValue and (NewValue - Min) / Step
-			if Steps and math.abs(Steps - math.floor(Steps + 0.5)) < 0.000001 then
-				SetValue(NewValue, true)
-			elseif InputBox.Text == "" then
-				SetValue(0, true)
-			else
+			InputBox.FocusLost:Connect(function()
 				InputBox.Text = tostring(Value)
-			end
-		end)
+				TweenService:Create(InputStroke, TweenInfo.new(1.2), {Color = Color3.fromRGB(150, 150, 150)}):Play()
+			end)
+
+			InputBox:GetPropertyChangedSignal("Text"):Connect(function()
+				if InputBox.Text == tostring(Value) then
+					return
+				end
+				local NewValue = tonumber(InputBox.Text)
+				local Steps = NewValue and (NewValue - Min) / Step
+				if Steps and math.abs(Steps - math.floor(Steps + 0.5)) < 0.000001 then
+					SetValue(NewValue, true)
+				elseif InputBox.Text == "" then
+					SetValue(0, true)
+				else
+					InputBox.Text = tostring(Value)
+				end
+			end)
+		end
 
 		SetValue(Config.Default or Min, false)
+
+		local SliderAPI = {}
+
+		function SliderAPI:SetValue(NewValue)
+			SetValue(NewValue, false)
+		end
+
+		return SliderAPI
 	end
 
 	function Tab:AddInput(Config)
