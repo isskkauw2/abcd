@@ -782,7 +782,11 @@ do
 		return Hud
 	end
 
-	function UI.HUD.MakeToggle(StartFn, StopFn, Placeholder, DefaultValue, LabelOn, LabelOff, Numeric)
+	function UI.HUD.MakeToggle(StartFn, StopFn, Placeholder, DefaultValue, LabelOn, LabelOff, Numeric, Mode)
+		local function GetMode()
+			local Current = type(Mode) == "function" and Mode() or Mode
+			return Current == "Hold" and "Hold" or "Toggle"
+		end
 		Numeric = Numeric ~= false
 		local HasValue = Placeholder ~= nil and DefaultValue ~= nil
 		local Active = false
@@ -804,6 +808,34 @@ do
 
 			NameLabel = NewInstance("TextLabel", {Parent = Frame, BackgroundTransparency = 1, Text = LabelOn, TextColor3 = Color3.fromRGB(80, 220, 120), Font = Enum.Font.GothamBold, TextSize = 16, Size = HasValue and UDim2.new(1, -64, 0, 44) or UDim2.new(1, 0, 1, 0), Position = HasValue and UDim2.new(0, 10, 0, 0) or UDim2.new(0, 0, 0, 0), TextXAlignment = HasValue and Enum.TextXAlignment.Left or Enum.TextXAlignment.Center, TextYAlignment = Enum.TextYAlignment.Center})
 
+			local Holding = false
+
+			local function SetLook(State)
+				local Col = State and Color3.fromRGB(80, 220, 120) or Color3.fromRGB(220, 70, 70)
+				NameLabel.Text = State and LabelOn or LabelOff
+				TweenService:Create(Stroke, Tw, { Color = Col }):Play()
+				TweenService:Create(NameLabel, Tw, { TextColor3 = Col }):Play()
+			end
+
+			local function BindHold(ClickArea)
+				UIGesture:MakeLongPressable(ClickArea, nil, function(_, _, IsPress, IsCancel, IsRelease)
+					if IsPress then
+						if GetMode() ~= "Hold" then
+							return
+						end
+						Holding = true
+						Active = true
+						SetLook(true)
+						StartFn(Value, true)
+					elseif Holding and (IsCancel or IsRelease) then
+						Holding = false
+						Active = false
+						SetLook(false)
+						StopFn(true)
+					end
+				end, { MoveTolerance = math.huge })
+			end
+
 			if HasValue then
 				local ToggleBtn, SLabel, IBox, SExp, GExp = BuildValueRow(Frame, Value, Placeholder, Tw, function(V)
 					Value = V
@@ -823,9 +855,11 @@ do
 				local ClickArea = NewInstance("TextButton", {Parent = Frame, Size = UDim2.new(1, -36, 0, 44), BackgroundTransparency = 1, Text = "", ZIndex = 2})
 
 				UIGesture:MakeDraggable(Frame, ClickArea)
+				BindHold(ClickArea)
 
 				ClickArea.Activated:Connect(function()
 					if Th then Th = false return end
+					if GetMode() == "Hold" then return end
 					Active = not Active
 					local Col = Active and Color3.fromRGB(80, 220, 120) or Color3.fromRGB(220, 70, 70)
 					NameLabel.Text = Active and LabelOn or LabelOff
@@ -838,8 +872,10 @@ do
 				local ClickArea = NewInstance("TextButton", {Parent = Frame, Size = UDim2.new(1, -8, 1, -8), Position = UDim2.new(0, 4, 0, 4), BackgroundTransparency = 1, Text = "", ZIndex = 2})
 
 				UIGesture:MakeDraggable(Frame, ClickArea)
+				BindHold(ClickArea)
 
 				ClickArea.Activated:Connect(function()
+					if GetMode() == "Hold" then return end
 					Active = not Active
 					local Col = Active and Color3.fromRGB(80, 220, 120) or Color3.fromRGB(220, 70, 70)
 					NameLabel.Text = Active and LabelOn or LabelOff
@@ -857,6 +893,14 @@ do
 					Value = tonumber(NewValue) or NewValue
 					if ValueLabelRef then ValueLabelRef.Text = tostring(Value) end
 					if InputBoxRef then InputBoxRef.Text = tostring(Value) end
+				end
+				if GetMode() == "Hold" then
+					Active = false
+					Frame.Visible = true
+					Stroke.Color = Color3.fromRGB(220, 70, 70)
+					NameLabel.Text = LabelOff
+					NameLabel.TextColor3 = Color3.fromRGB(220, 70, 70)
+					return
 				end
 				Active = true
 				Frame.Visible = true
@@ -1260,6 +1304,17 @@ do
 			ToggleButton.Text = Expanded and "-" or "+"
 			TweenService:Create(DropdownFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Size = UDim2.new(1, 0, 0, (HasDesc and 52 or 40) + (Expanded and math.clamp(#Config.Options * 32 - 2, 0, 150) + 12 or 0))}):Play()
 		end)
+
+		local DropdownAPI = {}
+
+		function DropdownAPI:SetValue(Option)
+			for _, Data in ipairs(OptionButtons) do
+				Data.Selected = Data.Value == Option
+				Data.Stroke.Color = Data.Selected and Color3.fromRGB(173, 216, 255) or Color3.fromRGB(150, 150, 150)
+			end
+		end
+
+		return DropdownAPI
 	end
 
 	function Tab:AddKeyPicker(Config)
@@ -1620,6 +1675,10 @@ do
 	function UI.Settings.ShowWindow()
 		MainFrame.Visible = true
 	end
+
+	function UI.Settings.HideWindow()
+		MainFrame.Visible = false
+	end
 end
 
 --[[ UIScale ]]--
@@ -1713,6 +1772,134 @@ do
 	end)
 
 	SetValue(Scale.Scale, false)
+end
+
+--[[ FovCircle ]]--
+do
+	UI.FovCircle = {}
+
+	local Circle = NewInstance("Frame", {AnchorPoint = Vector2.new(0.5, 0.5), BackgroundTransparency = 1, BorderSizePixel = 0, Active = false, Visible = false, ZIndex = 201, Parent = ScreenGui2})
+	NewInstance("UICorner", {CornerRadius = UDim.new(0.5, 0), Parent = Circle})
+	local CircleStroke = NewInstance("UIStroke", {Color = Color3.fromRGB(255, 255, 255), Thickness = 2, Transparency = 0.25, ApplyStrokeMode = Enum.ApplyStrokeMode.Border, Parent = Circle})
+
+	function UI.FovCircle.Update(Position, Radius, Thickness, Transparency)
+		Circle.Position = UDim2.fromOffset(Position.X, Position.Y)
+		Circle.Size = UDim2.fromOffset(Radius * 2, Radius * 2)
+		CircleStroke.Thickness = Thickness
+		CircleStroke.Transparency = Transparency
+		Circle.Visible = true
+	end
+
+	function UI.FovCircle.Hide()
+		Circle.Visible = false
+	end
+end
+
+--[[ Overlay ]]--
+do
+	UI.Overlay = {}
+
+	local Active = false
+	local Dragging = nil
+	local Current = nil
+
+	local Frame = NewInstance("TextButton", {Size = UDim2.new(1, 0, 1, 0), BackgroundColor3 = Color3.fromRGB(0, 0, 0), BackgroundTransparency = 0.72, BorderSizePixel = 0, AutoButtonColor = false, Text = "", Active = true, Visible = false, ZIndex = 200, Parent = ScreenGui2})
+
+	local Hint = NewInstance("TextLabel", {AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 18), Size = UDim2.new(0, 360, 0, 46), BackgroundColor3 = Color3.fromRGB(13, 13, 15), BackgroundTransparency = 0.04, BorderSizePixel = 0, Text = "", TextColor3 = Color3.fromRGB(246, 246, 248), Font = Enum.Font.GothamBold, TextSize = 14, TextWrapped = true, ZIndex = 202, Parent = Frame})
+	NewInstance("UICorner", {CornerRadius = UDim.new(0, 16), Parent = Hint})
+	NewInstance("UIStroke", {Color = Color3.fromRGB(235, 235, 240), Thickness = 1, Transparency = 0.3, ApplyStrokeMode = Enum.ApplyStrokeMode.Border, Parent = Hint})
+
+	local Button = NewInstance("TextButton", {AnchorPoint = Vector2.new(0.5, 1), Position = UDim2.new(0.5, 0, 1, -24), Size = UDim2.new(0, 150, 0, 40), BackgroundColor3 = Color3.fromRGB(60, 200, 100), BorderSizePixel = 0, AutoButtonColor = false, Text = "", TextColor3 = Color3.fromRGB(255, 255, 255), Font = Enum.Font.GothamBlack, TextSize = 13, ZIndex = 203, Parent = Frame})
+	NewInstance("UICorner", {CornerRadius = UDim.new(0, 14), Parent = Button})
+	NewInstance("UIStroke", {Color = Color3.fromRGB(255, 255, 255), Thickness = 1, Transparency = 0.5, ApplyStrokeMode = Enum.ApplyStrokeMode.Border, Parent = Button})
+
+	local Marker = NewInstance("Frame", {AnchorPoint = Vector2.new(0.5, 0.5), Size = UDim2.fromOffset(40, 40), BackgroundColor3 = Color3.fromRGB(80, 220, 120), BackgroundTransparency = 0.85, BorderSizePixel = 0, Visible = false, ZIndex = 201, Parent = Frame})
+	NewInstance("UICorner", {CornerRadius = UDim.new(1, 0), Parent = Marker})
+	NewInstance("UIStroke", {Color = Color3.fromRGB(80, 220, 120), Thickness = 3, ApplyStrokeMode = Enum.ApplyStrokeMode.Border, Parent = Marker})
+	local MarkerDot = NewInstance("Frame", {AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.5), Size = UDim2.fromOffset(4, 4), BackgroundColor3 = Color3.fromRGB(255, 255, 255), BorderSizePixel = 0, ZIndex = 203, Parent = Marker})
+	NewInstance("UICorner", {CornerRadius = UDim.new(1, 0), Parent = MarkerDot})
+	NewInstance("Frame", {AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.5), Size = UDim2.new(1, 14, 0, 2), BackgroundColor3 = Color3.fromRGB(255, 255, 255), BackgroundTransparency = 0.12, BorderSizePixel = 0, ZIndex = 202, Parent = Marker})
+	NewInstance("Frame", {AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.5), Size = UDim2.new(0, 2, 1, 14), BackgroundColor3 = Color3.fromRGB(255, 255, 255), BackgroundTransparency = 0.12, BorderSizePixel = 0, ZIndex = 202, Parent = Marker})
+
+	local function ToViewport(Input)
+		if Input.UserInputType == Enum.UserInputType.Touch then
+			return Vector2.new(Input.Position.X, Input.Position.Y)
+		end
+		return UserInputService:GetMouseLocation()
+	end
+
+	local function Inside(Object, Position)
+		local Pos = Object.AbsolutePosition
+		local Size = Object.AbsoluteSize
+		return Position.X >= Pos.X and Position.X <= Pos.X + Size.X and Position.Y >= Pos.Y and Position.Y <= Pos.Y + Size.Y
+	end
+
+	local function Close(Confirmed, Position)
+		Active = false
+		Dragging = nil
+		Frame.Visible = false
+		if Current.OnFinish then
+			Current.OnFinish(Confirmed, Position)
+		end
+	end
+
+	local function Move(Position)
+		Marker.Position = UDim2.fromOffset(Position.X, Position.Y)
+		Marker.Visible = true
+		if Current.OnPoint then
+			Current.OnPoint(Position)
+		end
+	end
+
+	Frame.InputBegan:Connect(function(Input)
+		if not Active or Dragging then return end
+		if Input.UserInputType ~= Enum.UserInputType.MouseButton1 and Input.UserInputType ~= Enum.UserInputType.Touch then return end
+		local Position = ToViewport(Input)
+		if Inside(Button, Position) or Inside(Hint, Position) then return end
+		if Current.Drag then
+			Dragging = Input
+			Move(Position)
+		else
+			Close(true, Position)
+		end
+	end)
+
+	UserInputService.InputChanged:Connect(function(Input)
+		if Dragging and (Input == Dragging or Input.UserInputType == Enum.UserInputType.MouseMovement) then
+			Move(ToViewport(Dragging))
+		end
+	end)
+
+	UserInputService.InputEnded:Connect(function(Input)
+		if Input == Dragging then
+			Dragging = nil
+		end
+	end)
+
+	Button.Activated:Connect(function()
+		if Active then
+			Close(Current.Drag == true)
+		end
+	end)
+
+	function UI.Overlay.Open(Config)
+		Current = Config
+		Active = true
+		Dragging = nil
+		Hint.Text = Config.Hint or ""
+		Hint.Size = UDim2.new(0, math.clamp(Frame.AbsoluteSize.X - 30, 260, 520), 0, 46)
+		Button.Text = Config.ButtonText or (Config.Drag and "DONE" or "CLOSE")
+		Button.BackgroundColor3 = Config.Drag and Color3.fromRGB(60, 200, 100) or Color3.fromRGB(190, 55, 65)
+		Marker.Visible = Config.Point ~= nil
+		if Config.Point then
+			Marker.Position = UDim2.fromOffset(Config.Point.X, Config.Point.Y)
+		end
+		Frame.Visible = true
+	end
+end
+
+function UI.IsOwnGui(Gui)
+	return Gui:IsDescendantOf(ScreenGui) or Gui:IsDescendantOf(ScreenGui2)
 end
 
 return UI
