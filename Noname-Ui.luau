@@ -333,6 +333,7 @@ end
 --[[ CommandList ]]--
 do
 	local Frame = NewInstance("Frame", {Parent = ScreenGui, Size = UDim2.new(0, 0, 0, 0), Position = UDim2.new(0.5, 0, 0.5, 0), AnchorPoint = Vector2.new(0.5, 0.5), BackgroundColor3 = Color3.fromRGB(13, 13, 15), BorderSizePixel = 0, ClipsDescendants = true, Visible = false, ZIndex = 30})
+	NewInstance("UICorner", { Parent = Frame, CornerRadius = UDim.new(0, 14) })
 
 	local Title = NewInstance("TextLabel", {Parent = Frame, Size = UDim2.new(1, -70, 0, 40), Position = UDim2.new(0, 20, 0, 0), BackgroundTransparency = 1, Active = true, Text = "COMMAND LIST", TextColor3 = Color3.fromRGB(246, 246, 248), TextSize = 15, TextXAlignment = Enum.TextXAlignment.Left, TextYAlignment = Enum.TextYAlignment.Center, FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Bold, Enum.FontStyle.Normal), ZIndex = 32})
 
@@ -491,6 +492,7 @@ do
 	local PickerOpen = false
 
 	local Frame = NewInstance("Frame", {Parent = ScreenGui, Size = UDim2.new(0, 0, 0, 0), Position = UDim2.new(0.5, 0, 0, 24), AnchorPoint = Vector2.new(0.5, 0), BackgroundColor3 = Color3.fromRGB(13, 13, 15), BorderSizePixel = 0, ClipsDescendants = true, Visible = false, ZIndex = 40})
+	NewInstance("UICorner", { Parent = Frame, CornerRadius = UDim.new(0, 14) })
 
 	local function Close()
 		PickerOpen = false
@@ -551,7 +553,7 @@ do
 
 		for Index = 1, math.max(Count, #Rows) do
 			if not Rows[Index] then
-				local Card = NewInstance("Frame", {Parent = Content, Size = UDim2.new(0.5, -4, 0, 52), BackgroundColor3 = Color3.fromRGB(24, 24, 27), BackgroundTransparency = 0.35, BorderSizePixel = 0, Visible = false, ZIndex = 41})
+				local Card = NewInstance("TextButton", {Parent = Content, Size = UDim2.new(0.5, -4, 0, 52), BackgroundColor3 = Color3.fromRGB(24, 24, 27), BackgroundTransparency = 0.35, BorderSizePixel = 0, AutoButtonColor = false, Text = "", Visible = false, ZIndex = 41})
 				NewInstance("UICorner", { Parent = Card, CornerRadius = UDim.new(0, 10) })
 				local CardStroke = NewInstance("UIStroke", {Parent = Card, ApplyStrokeMode = Enum.ApplyStrokeMode.Border, Color = Color3.fromRGB(225, 225, 232), Thickness = 1, Transparency = 0.8})
 
@@ -566,9 +568,7 @@ do
 
 				local DescLabel = NewInstance("TextLabel", {Parent = Card, Size = UDim2.new(1, -26, 0, 14), Position = UDim2.new(0, 20, 0, 29), BackgroundTransparency = 1, Text = "", TextColor3 = Color3.fromRGB(150, 150, 158), TextTransparency = 0.35, FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Medium, Enum.FontStyle.Normal), TextSize = 11, TextXAlignment = Enum.TextXAlignment.Left, TextYAlignment = Enum.TextYAlignment.Center, TextWrapped = false, TextTruncate = Enum.TextTruncate.AtEnd, ZIndex = 43})
 
-				local Button = NewInstance("TextButton", {Parent = Card, Size = UDim2.new(1, 0, 1, 0), BackgroundTransparency = 1, BorderSizePixel = 0, AutoButtonColor = false, Text = "", ZIndex = 44})
-
-				UIGesture:MakeHoverable(Button, nil, function(Active)
+				UIGesture:MakeHoverable(Card, nil, function(Active)
 					TweenService:Create(Card, TweenInfo.new(0.12, Enum.EasingStyle.Sine, Enum.EasingDirection.Out), {
 						BackgroundColor3 = Active and Color3.fromRGB(40, 40, 46) or Color3.fromRGB(24, 24, 27),
 						BackgroundTransparency = Active and 0.15 or 0.35,
@@ -586,7 +586,7 @@ do
 					TweenService:Create(DescLabel, TweenInfo.new(0.12, Enum.EasingStyle.Sine, Enum.EasingDirection.Out), { TextTransparency = Active and 0.15 or 0.35 }):Play()
 				end)
 
-				Button.Activated:Connect(function()
+				Card.Activated:Connect(function()
 					if not PickerOpen then return end
 					Close()
 					if Rows[Index].Fn then
