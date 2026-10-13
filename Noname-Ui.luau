@@ -54,7 +54,7 @@ local ContentProvider = Cloneref(game:GetService("ContentProvider"))
 local UIGesture = Load("https://raw.githubusercontent.com/isskkauww/Modules/refs/heads/main/UIGesture.luau", "UIGesture")
 local ToggleBusy = false
 local IsMobile = UserInputService:GetPlatform() == Enum.Platform.Android or UserInputService:GetPlatform() == Enum.Platform.IOS
-local Version = "🔥🔥 Noname v0.0.1 🔥🔥"
+local Version = "🔥🔥 Noname Admin v0.0.1 🔥🔥"
 
 local UI = {
 	CommandBar = {},
@@ -339,7 +339,7 @@ do
 
 	UIGesture:MakeDraggable(Frame, Title)
 
-	local CloseButton = NewInstance("TextButton", {Parent = Frame, Size = UDim2.new(0, 26, 0, 26), Position = UDim2.new(1, -5, 0, 5), AnchorPoint = Vector2.new(1, 0), BackgroundColor3 = Color3.fromRGB(31, 31, 35), BackgroundTransparency = 0.08, BorderSizePixel = 0, AutoButtonColor = false, Text = "X", TextColor3 = Color3.fromRGB(196, 196, 204), TextSize = 14, Font = Enum.Font.Nunito, ZIndex = 32})
+	local CloseButton = NewInstance("TextButton", {Parent = Frame, Size = UDim2.new(0, 26, 0, 26), Position = UDim2.new(1, -5, 0, 5), AnchorPoint = Vector2.new(1, 0), BackgroundColor3 = Color3.fromRGB(31, 31, 35), BackgroundTransparency = 0.08, BorderSizePixel = 0, AutoButtonColor = false, Text = "X", TextColor3 = Color3.fromRGB(196, 196, 204), TextSize = 20, Font = Enum.Font.Nunito, ZIndex = 32})
 	NewInstance("UICorner", { Parent = CloseButton, CornerRadius = UDim.new(0, 7) })
 
 	CloseButton.Activated:Connect(function()
