@@ -339,7 +339,7 @@ do
 
 	UIGesture:MakeDraggable(Frame, Title)
 
-	local CloseButton = NewInstance("TextButton", {Parent = Frame, Size = UDim2.new(0, 26, 0, 26), Position = UDim2.new(1, -14, 0, 14), AnchorPoint = Vector2.new(1, 0), BackgroundColor3 = Color3.fromRGB(31, 31, 35), BackgroundTransparency = 0.08, BorderSizePixel = 0, AutoButtonColor = false, Text = "X", TextColor3 = Color3.fromRGB(196, 196, 204), TextSize = 14, FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Bold, Enum.FontStyle.Normal), ZIndex = 32})
+	local CloseButton = NewInstance("TextButton", {Parent = Frame, Size = UDim2.new(0, 26, 0, 26), Position = UDim2.new(1, -5, 0, 5), AnchorPoint = Vector2.new(1, 0), BackgroundColor3 = Color3.fromRGB(31, 31, 35), BackgroundTransparency = 0.08, BorderSizePixel = 0, AutoButtonColor = false, Text = "X", TextColor3 = Color3.fromRGB(196, 196, 204), TextSize = 14, Font = Enum.Font.Nunito, ZIndex = 32})
 	NewInstance("UICorner", { Parent = CloseButton, CornerRadius = UDim.new(0, 7) })
 
 	CloseButton.Activated:Connect(function()
@@ -388,10 +388,10 @@ do
 
 	SearchBox:GetPropertyChangedSignal("Text"):Connect(FilterEntries)
 
-	function UI.CommandList.Add(Names, Description, Callback)
+	function UI.CommandList.Add(Names, Description, Callback, HasArgs)
 		local Aliases = type(Names) == "table" and Names or { Names }
 
-		local Row = NewInstance("Frame", {Parent = ListFrame, Size = UDim2.new(0.95, 0, 0, 44), BackgroundTransparency = 1, BorderSizePixel = 0, LayoutOrder = #Entries + 1, ZIndex = 31})
+		local Row = NewInstance("Frame", {Parent = ListFrame, Size = UDim2.new(0.95, 0, 0, 44), BackgroundTransparency = 1, BorderSizePixel = 0, ClipsDescendants = true, LayoutOrder = #Entries + 1, ZIndex = 31})
 
 		local RowShell = NewInstance("Frame", {Parent = Row, Size = UDim2.new(1, 0, 1, 0), BackgroundColor3 = Color3.fromRGB(24, 24, 27), BackgroundTransparency = 0.2, BorderSizePixel = 0, ZIndex = 31})
 		NewInstance("UICorner", { Parent = RowShell, CornerRadius = UDim.new(0, 8) })
@@ -404,7 +404,21 @@ do
 
 		NewInstance("TextLabel", {Parent = RowShell, Size = UDim2.new(1, -30, 0, 16), Position = UDim2.new(0, 18, 0, 23), BackgroundTransparency = 1, Text = Description or "", TextColor3 = Color3.fromRGB(150, 150, 158), FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Medium, Enum.FontStyle.Normal), TextSize = 12, TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false, ClipsDescendants = true, ZIndex = 33})
 
-		local Button = NewInstance("TextButton", {Parent = Row, Size = UDim2.new(1, 0, 1, 0), BackgroundTransparency = 1, BorderSizePixel = 0, AutoButtonColor = false, Text = "", ZIndex = 34})
+		local Button = NewInstance("TextButton", {Parent = Row, Size = UDim2.new(1, 0, 0, 44), BackgroundTransparency = 1, BorderSizePixel = 0, AutoButtonColor = false, Text = "", ZIndex = 34})
+
+		local ArgBox = nil
+		if HasArgs then
+			ArgBox = NewInstance("TextBox", {Parent = RowShell, Size = UDim2.new(1, -100, 0, 28), Position = UDim2.new(0, 18, 0, 46), BackgroundColor3 = Color3.fromRGB(13, 13, 15), BackgroundTransparency = 0.2, BorderSizePixel = 0, Text = "", TextColor3 = Color3.fromRGB(246, 246, 248), PlaceholderText = "Arguments...", PlaceholderColor3 = Color3.fromRGB(130, 130, 138), FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Medium, Enum.FontStyle.Normal), TextSize = 13, TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false, ClearTextOnFocus = false, ClipsDescendants = true, ZIndex = 35})
+			NewInstance("UICorner", { Parent = ArgBox, CornerRadius = UDim.new(0, 7) })
+			NewInstance("UIPadding", {Parent = ArgBox, PaddingLeft = UDim.new(0, 10), PaddingRight = UDim.new(0, 10)})
+			NewInstance("UIStroke", {Parent = ArgBox, ApplyStrokeMode = Enum.ApplyStrokeMode.Border, Color = Color3.fromRGB(255, 255, 255), Thickness = 1, Transparency = 0.78})
+		end
+
+		local RunButton = NewInstance("TextButton", {Parent = RowShell, Size = HasArgs and UDim2.new(0, 62, 0, 28) or UDim2.new(1, -36, 0, 28), Position = HasArgs and UDim2.new(1, -10, 0, 46) or UDim2.new(0, 18, 0, 46), AnchorPoint = HasArgs and Vector2.new(1, 0) or Vector2.new(0, 0), BackgroundColor3 = Color3.fromRGB(42, 42, 47), BackgroundTransparency = 0.04, BorderSizePixel = 0, AutoButtonColor = false, Text = "Run", TextColor3 = Color3.fromRGB(245, 245, 248), TextSize = 13, FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Bold, Enum.FontStyle.Normal), ZIndex = 35})
+		NewInstance("UICorner", { Parent = RunButton, CornerRadius = UDim.new(0, 7) })
+		NewInstance("UIStroke", {Parent = RunButton, ApplyStrokeMode = Enum.ApplyStrokeMode.Border, Color = Color3.fromRGB(255, 255, 255), Thickness = 1, Transparency = 0.7})
+
+		local Expanded = false
 
 		local function Hover(Active)
 			local Info = TweenInfo.new(0.12, Enum.EasingStyle.Sine, Enum.EasingDirection.Out)
@@ -419,10 +433,23 @@ do
 		UIGesture:MakeHoverable(Button, nil, Hover)
 
 		Button.Activated:Connect(function()
+			Expanded = not Expanded
+			TweenService:Create(Row, TweenInfo.new(0.16, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), { Size = UDim2.new(0.95, 0, 0, Expanded and 84 or 44) }):Play()
+		end)
+
+		RunButton.Activated:Connect(function()
 			if Callback then
-				Callback()
+				Callback(ArgBox and ArgBox.Text or "")
 			end
 		end)
+
+		if ArgBox then
+			ArgBox.FocusLost:Connect(function(EnterPressed)
+				if EnterPressed and Callback then
+					Callback(ArgBox.Text)
+				end
+			end)
+		end
 
 		local Entry = {
 			Aliases = Aliases,
@@ -511,6 +538,7 @@ do
 	NewInstance("UIGradient", {Parent = NewInstance("Frame", {Parent = Frame, Size = UDim2.new(1, -40, 0, 1), Position = UDim2.new(0, 20, 0, 50), BackgroundColor3 = Color3.fromRGB(235, 235, 240), BackgroundTransparency = 0.6, BorderSizePixel = 0, ZIndex = 42}), Transparency = NumberSequence.new({NumberSequenceKeypoint.new(0, 1), NumberSequenceKeypoint.new(0.5, 0), NumberSequenceKeypoint.new(1, 1)})})
 
 	local Content = NewInstance("ScrollingFrame", {Parent = Frame, Size = UDim2.new(1, -32, 1, -76), Position = UDim2.new(0, 16, 0, 60), BackgroundTransparency = 1, BorderSizePixel = 0, ScrollingDirection = Enum.ScrollingDirection.Y, ScrollBarThickness = 3, ScrollBarImageColor3 = Color3.fromRGB(235, 235, 240), ScrollBarImageTransparency = 0.5, VerticalScrollBarInset = Enum.ScrollBarInset.None, CanvasSize = UDim2.new(0, 0, 0, 0), ZIndex = 41})
+	NewInstance("UIPadding", { Parent = Content, PaddingTop = UDim.new(0, 2), PaddingBottom = UDim.new(0, 2), PaddingLeft = UDim.new(0, 2), PaddingRight = UDim.new(0, 2) })
 
 	local CloseButton = NewInstance("TextButton", {Parent = Frame, Size = UDim2.new(0, 84, 0, 26), Position = UDim2.new(1, -14, 0, 14), AnchorPoint = Vector2.new(1, 0), BackgroundColor3 = Color3.fromRGB(31, 31, 35), BackgroundTransparency = 0.08, BorderSizePixel = 0, AutoButtonColor = false, Text = "Close", TextColor3 = Color3.fromRGB(196, 196, 204), TextSize = 18, FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Bold, Enum.FontStyle.Normal), ZIndex = 42})
 	NewInstance("UICorner", { Parent = CloseButton, CornerRadius = UDim.new(0, 7) })
@@ -548,7 +576,7 @@ do
 	function UI.CreatePicker(Config, Title)
 		Count = #Config
 		PickerTitle.Text = Title or "Select One"
-		Content.CanvasSize = UDim2.new(0, 0, 0, 60 * math.ceil(Count / 2) - 8)
+		Content.CanvasSize = UDim2.new(0, 0, 0, 60 * math.ceil(Count / 2) - 4)
 		Content.CanvasPosition = Vector2.zero
 
 		for Index = 1, math.max(Count, #Rows) do
