@@ -332,12 +332,7 @@ end
 
 --[[ CommandList ]]--
 do
-	local Frame = NewInstance("Frame", {Parent = ScreenGui, Size = UDim2.new(0, 0, 0, 0), Position = UDim2.new(0.5, 0, 0.5, 0), AnchorPoint = Vector2.new(0.5, 0.5), BackgroundTransparency = 1, BorderSizePixel = 0, ClipsDescendants = true, Visible = false, ZIndex = 30})
-
-	local Shell = NewInstance("Frame", {Parent = Frame, Size = UDim2.new(1, 0, 1, 0), BackgroundColor3 = Color3.fromRGB(13, 13, 15), BackgroundTransparency = 0.04, BorderSizePixel = 0, ZIndex = 30})
-	NewInstance("UICorner", { Parent = Shell, CornerRadius = UDim.new(0, 14) })
-	NewInstance("UIGradient", {Parent = Shell, Rotation = 90, Color = ColorSequence.new({ColorSequenceKeypoint.new(0, Color3.fromRGB(20, 20, 23)), ColorSequenceKeypoint.new(1, Color3.fromRGB(10, 10, 12))})})
-	local ListOutline = NewInstance("UIStroke", {Parent = Shell, ApplyStrokeMode = Enum.ApplyStrokeMode.Border, Color = Color3.fromRGB(235, 235, 240), Thickness = 1.25, Transparency = 0.58})
+	local Frame = NewInstance("Frame", {Parent = ScreenGui, Size = UDim2.new(0, 0, 0, 0), Position = UDim2.new(0.5, 0, 0.5, 0), AnchorPoint = Vector2.new(0.5, 0.5), BackgroundColor3 = Color3.fromRGB(13, 13, 15), BorderSizePixel = 0, ClipsDescendants = true, Visible = false, ZIndex = 30})
 
 	local Title = NewInstance("TextLabel", {Parent = Frame, Size = UDim2.new(1, -70, 0, 40), Position = UDim2.new(0, 20, 0, 0), BackgroundTransparency = 1, Active = true, Text = "COMMAND LIST", TextColor3 = Color3.fromRGB(246, 246, 248), TextSize = 15, TextXAlignment = Enum.TextXAlignment.Left, TextYAlignment = Enum.TextYAlignment.Center, FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Bold, Enum.FontStyle.Normal), ZIndex = 32})
 
@@ -465,13 +460,11 @@ do
 		SearchBox.Text = ""
 		Frame.Visible = true
 		Frame.Size = UDim2.new(0, Width - 60, 0, Height - 60)
-		TweenService:Create(ListOutline, TweenInfo.new(0.108, Enum.EasingStyle.Sine, Enum.EasingDirection.Out), { Transparency = 0.18 }):Play()
 		TweenService:Create(Frame, TweenInfo.new(0.16, Enum.EasingStyle.Back, Enum.EasingDirection.Out), { Size = UDim2.new(0, Width, 0, Height) }):Play()
 	end
 
 	function UI.CommandList.Close()
 		UI.CmdListOpen = false
-		TweenService:Create(ListOutline, TweenInfo.new(0.18, Enum.EasingStyle.Sine, Enum.EasingDirection.Out), { Transparency = 0.58 }):Play()
 
 		local CloseTween = TweenService:Create(Frame, TweenInfo.new(0.32, Enum.EasingStyle.Back, Enum.EasingDirection.InOut), { Size = UDim2.new(0, 0, 0, 0) })
 		CloseTween.Completed:Connect(function()
@@ -497,16 +490,10 @@ do
 	local Rows = {}
 	local PickerOpen = false
 
-	local Frame = NewInstance("Frame", {Parent = ScreenGui, Size = UDim2.new(0, 0, 0, 0), Position = UDim2.new(0.5, 0, 0, 24), AnchorPoint = Vector2.new(0.5, 0), BackgroundTransparency = 1, BorderSizePixel = 0, ClipsDescendants = true, Visible = false, ZIndex = 40})
-
-	local Shell = NewInstance("Frame", {Parent = Frame, Size = UDim2.new(1, 0, 1, 0), BackgroundColor3 = Color3.fromRGB(13, 13, 15), BackgroundTransparency = 0.3, BorderSizePixel = 0, ZIndex = 40})
-	NewInstance("UICorner", { Parent = Shell, CornerRadius = UDim.new(0, 14) })
-	NewInstance("UIGradient", {Parent = Shell, Rotation = 90, Color = ColorSequence.new({ColorSequenceKeypoint.new(0, Color3.fromRGB(20, 20, 23)), ColorSequenceKeypoint.new(1, Color3.fromRGB(10, 10, 12))})})
-	local PickerOutline = NewInstance("UIStroke", {Parent = Shell, ApplyStrokeMode = Enum.ApplyStrokeMode.Border, Color = Color3.fromRGB(235, 235, 240), Thickness = 1.25, Transparency = 0.58})
+	local Frame = NewInstance("Frame", {Parent = ScreenGui, Size = UDim2.new(0, 0, 0, 0), Position = UDim2.new(0.5, 0, 0, 24), AnchorPoint = Vector2.new(0.5, 0), BackgroundColor3 = Color3.fromRGB(13, 13, 15), BorderSizePixel = 0, ClipsDescendants = true, Visible = false, ZIndex = 40})
 
 	local function Close()
 		PickerOpen = false
-		TweenService:Create(PickerOutline, TweenInfo.new(0.18, Enum.EasingStyle.Sine, Enum.EasingDirection.Out), { Transparency = 0.58 }):Play()
 
 		local CloseTween = TweenService:Create(Frame, TweenInfo.new(0.32, Enum.EasingStyle.Back, Enum.EasingDirection.InOut), { Size = UDim2.new(0, 0, 0, 0) })
 		CloseTween.Completed:Connect(function()
@@ -654,7 +641,6 @@ do
 		Frame.Visible = true
 		Frame.Position = UDim2.new(0.5, 0, 0, 6)
 		Frame.Size = UDim2.new(0, Size.X.Offset - 40, 0, Size.Y.Offset - 40)
-		TweenService:Create(PickerOutline, TweenInfo.new(0.108, Enum.EasingStyle.Sine, Enum.EasingDirection.Out), { Transparency = 0.18 }):Play()
 		TweenService:Create(Frame, TweenInfo.new(0.16, Enum.EasingStyle.Back, Enum.EasingDirection.Out), { Size = Size, Position = UDim2.new(0.5, 0, 0, 24) }):Play()
 	end
 end
