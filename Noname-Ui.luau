@@ -391,30 +391,28 @@ do
 	function UI.CommandList.Add(Names, Description, Callback, HasArgs)
 		local Aliases = type(Names) == "table" and Names or { Names }
 
-		local Row = NewInstance("Frame", {Parent = ListFrame, Size = UDim2.new(0.95, 0, 0, 44), BackgroundTransparency = 1, BorderSizePixel = 0, ClipsDescendants = true, LayoutOrder = #Entries + 1, ZIndex = 31})
+		local Row = NewInstance("Frame", {Parent = ListFrame, Size = UDim2.new(0.95, 0, 0, 44), BackgroundColor3 = Color3.fromRGB(24, 24, 27), BackgroundTransparency = 0, BorderSizePixel = 0, ClipsDescendants = true, LayoutOrder = #Entries + 1, ZIndex = 31})
+		NewInstance("UICorner", { Parent = Row, CornerRadius = UDim.new(0, 8) })
+		local RowStroke = NewInstance("UIStroke", {Parent = Row, ApplyStrokeMode = Enum.ApplyStrokeMode.Border, Color = Color3.fromRGB(225, 225, 232), Thickness = 1, Transparency = 0.76})
 
-		local RowShell = NewInstance("Frame", {Parent = Row, Size = UDim2.new(1, 0, 1, 0), BackgroundColor3 = Color3.fromRGB(24, 24, 27), BackgroundTransparency = 0.2, BorderSizePixel = 0, ZIndex = 31})
-		NewInstance("UICorner", { Parent = RowShell, CornerRadius = UDim.new(0, 8) })
-		local RowStroke = NewInstance("UIStroke", {Parent = RowShell, ApplyStrokeMode = Enum.ApplyStrokeMode.Border, Color = Color3.fromRGB(225, 225, 232), Thickness = 1, Transparency = 0.76})
-
-		local RowLine = NewInstance("Frame", {Parent = RowShell, Size = UDim2.new(0, 2, 1, -16), Position = UDim2.new(0, 7, 0.5, 0), AnchorPoint = Vector2.new(0, 0.5), BackgroundColor3 = Color3.fromRGB(245, 245, 248), BackgroundTransparency = 0.42, BorderSizePixel = 0, ZIndex = 32})
+		local RowLine = NewInstance("Frame", {Parent = Row, Size = UDim2.new(0, 2, 1, -16), Position = UDim2.new(0, 7, 0.5, 0), AnchorPoint = Vector2.new(0, 0.5), BackgroundColor3 = Color3.fromRGB(245, 245, 248), BackgroundTransparency = 0.42, BorderSizePixel = 0, ZIndex = 32})
 		NewInstance("UICorner", { Parent = RowLine, CornerRadius = UDim.new(0, 3) })
 
-		NewInstance("TextLabel", {Parent = RowShell, Size = UDim2.new(1, -30, 0, 20), Position = UDim2.new(0, 18, 0, 5), BackgroundTransparency = 1, Text = table.concat(Aliases, ", "), TextColor3 = Color3.fromRGB(232, 232, 236), FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Bold, Enum.FontStyle.Normal), TextSize = 14, TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false, ClipsDescendants = true, ZIndex = 33})
+		NewInstance("TextLabel", {Parent = Row, Size = UDim2.new(1, -30, 0, 20), Position = UDim2.new(0, 18, 0, 5), BackgroundTransparency = 1, Text = table.concat(Aliases, ", "), TextColor3 = Color3.fromRGB(232, 232, 236), FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Bold, Enum.FontStyle.Normal), TextSize = 14, TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false, ClipsDescendants = true, ZIndex = 33})
 
-		NewInstance("TextLabel", {Parent = RowShell, Size = UDim2.new(1, -30, 0, 16), Position = UDim2.new(0, 18, 0, 23), BackgroundTransparency = 1, Text = Description or "", TextColor3 = Color3.fromRGB(150, 150, 158), FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Medium, Enum.FontStyle.Normal), TextSize = 12, TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false, ClipsDescendants = true, ZIndex = 33})
+		NewInstance("TextLabel", {Parent = Row, Size = UDim2.new(1, -30, 0, 16), Position = UDim2.new(0, 18, 0, 23), BackgroundTransparency = 1, Text = Description or "", TextColor3 = Color3.fromRGB(150, 150, 158), FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Medium, Enum.FontStyle.Normal), TextSize = 12, TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false, ClipsDescendants = true, ZIndex = 33})
 
 		local Button = NewInstance("TextButton", {Parent = Row, Size = UDim2.new(1, 0, 0, 44), BackgroundTransparency = 1, BorderSizePixel = 0, AutoButtonColor = false, Text = "", ZIndex = 34})
 
 		local ArgBox = nil
 		if HasArgs then
-			ArgBox = NewInstance("TextBox", {Parent = RowShell, Size = UDim2.new(1, -100, 0, 28), Position = UDim2.new(0, 18, 0, 46), BackgroundColor3 = Color3.fromRGB(13, 13, 15), BackgroundTransparency = 0.2, BorderSizePixel = 0, Text = "", TextColor3 = Color3.fromRGB(246, 246, 248), PlaceholderText = "Arguments...", PlaceholderColor3 = Color3.fromRGB(130, 130, 138), FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Medium, Enum.FontStyle.Normal), TextSize = 13, TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false, ClearTextOnFocus = false, ClipsDescendants = true, ZIndex = 35})
+			ArgBox = NewInstance("TextBox", {Parent = Row, Size = UDim2.new(1, -100, 0, 28), Position = UDim2.new(0, 18, 0, 46), BackgroundColor3 = Color3.fromRGB(13, 13, 15), BackgroundTransparency = 0, BorderSizePixel = 0, Text = "", TextColor3 = Color3.fromRGB(246, 246, 248), PlaceholderText = "Arguments...", PlaceholderColor3 = Color3.fromRGB(130, 130, 138), FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Medium, Enum.FontStyle.Normal), TextSize = 13, TextXAlignment = Enum.TextXAlignment.Left, TextWrapped = false, ClearTextOnFocus = false, ClipsDescendants = true, ZIndex = 35})
 			NewInstance("UICorner", { Parent = ArgBox, CornerRadius = UDim.new(0, 7) })
 			NewInstance("UIPadding", {Parent = ArgBox, PaddingLeft = UDim.new(0, 10), PaddingRight = UDim.new(0, 10)})
 			NewInstance("UIStroke", {Parent = ArgBox, ApplyStrokeMode = Enum.ApplyStrokeMode.Border, Color = Color3.fromRGB(255, 255, 255), Thickness = 1, Transparency = 0.78})
 		end
 
-		local RunButton = NewInstance("TextButton", {Parent = RowShell, Size = HasArgs and UDim2.new(0, 62, 0, 28) or UDim2.new(1, -36, 0, 28), Position = HasArgs and UDim2.new(1, -10, 0, 46) or UDim2.new(0, 18, 0, 46), AnchorPoint = HasArgs and Vector2.new(1, 0) or Vector2.new(0, 0), BackgroundColor3 = Color3.fromRGB(42, 42, 47), BackgroundTransparency = 0.04, BorderSizePixel = 0, AutoButtonColor = false, Text = "Run", TextColor3 = Color3.fromRGB(245, 245, 248), TextSize = 13, FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Bold, Enum.FontStyle.Normal), ZIndex = 35})
+		local RunButton = NewInstance("TextButton", {Parent = Row, Size = HasArgs and UDim2.new(0, 62, 0, 28) or UDim2.new(1, -36, 0, 28), Position = HasArgs and UDim2.new(1, -10, 0, 46) or UDim2.new(0, 18, 0, 46), AnchorPoint = HasArgs and Vector2.new(1, 0) or Vector2.new(0, 0), BackgroundColor3 = Color3.fromRGB(42, 42, 47), BackgroundTransparency = 0, BorderSizePixel = 0, AutoButtonColor = false, Text = "Run", TextColor3 = Color3.fromRGB(245, 245, 248), TextSize = 13, FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Bold, Enum.FontStyle.Normal), ZIndex = 35})
 		NewInstance("UICorner", { Parent = RunButton, CornerRadius = UDim.new(0, 7) })
 		NewInstance("UIStroke", {Parent = RunButton, ApplyStrokeMode = Enum.ApplyStrokeMode.Border, Color = Color3.fromRGB(255, 255, 255), Thickness = 1, Transparency = 0.7})
 
@@ -422,10 +420,7 @@ do
 
 		local function Hover(Active)
 			local Info = TweenInfo.new(0.12, Enum.EasingStyle.Sine, Enum.EasingDirection.Out)
-			TweenService:Create(RowShell, Info, {
-				BackgroundColor3 = Active and Color3.fromRGB(38, 38, 43) or Color3.fromRGB(24, 24, 27),
-				BackgroundTransparency = Active and 0.08 or 0.2,
-			}):Play()
+			TweenService:Create(Row, Info, { BackgroundColor3 = Active and Color3.fromRGB(38, 38, 43) or Color3.fromRGB(24, 24, 27) }):Play()
 			TweenService:Create(RowStroke, Info, { Transparency = Active and 0.28 or 0.76 }):Play()
 			TweenService:Create(RowLine, Info, { BackgroundTransparency = Active and 0.05 or 0.42 }):Play()
 		end
